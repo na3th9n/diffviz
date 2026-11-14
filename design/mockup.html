@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Visualizer mockup – session part in progress</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#14161a}
+a{color:#8fbaff}a:hover{color:#b9d4ff}
+</style>
+<div style="display: flex; flex-wrap: wrap; min-height: 900px; background: #14161a; color: #e6e8eb; font-family: Inter, system-ui, sans-serif; font-size: 14px">
+
+  <aside style="flex: 1 1 280px; box-sizing: border-box; background: #1b1e23; border-right: 1px solid #2a2e35; display: flex; flex-direction: column">
+    <div style="padding: 20px 20px 16px; border-bottom: 1px solid #2a2e35; display: flex; flex-direction: column; gap: 4px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9aa1ab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+        <span style="font-weight: 600; font-size: 15px">job-tracker</span>
+      </div>
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #9aa1ab">~/projects/job-tracker</span>
+    </div>
+    <div style="padding: 20px; display: flex; flex-direction: column; gap: 12px">
+      <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #9aa1ab">Session part summary</span>
+      <p style="margin: 0; line-height: 1.6; color: #d4d8dd">Added a sync status banner to the dashboard. The email sync route now returns how many emails were processed and when the last sync ran, and the sync service records both after each run.</p>
+      <p style="margin: 0; line-height: 1.6; color: #d4d8dd">The old standalone sync button was removed; syncing now starts from the banner. Mock emails gained three follow-up messages to exercise status updates.</p>
+      <p style="margin: 0; line-height: 1.6; color: #d4d8dd">The Status type in the shared package gained a lastSyncedAt field used by both the server and the dashboard.</p>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 20px; border-bottom: 1px solid #2a2e35; background: #181a1f; font-size: 13px">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+        <span style="display: flex; align-items: center; gap: 8px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #5fd08a"></span>Session part in progress</span>
+        <span style="color: #9aa1ab">7 files changed since <span style="font-family: 'JetBrains Mono', monospace; color: #d4d8dd">3f9c2a1</span></span>
+      </div>
+      <span style="color: #9aa1ab">AI output updated after prompt 2</span>
+    </div>
+
+    <div style="position: relative; flex-grow: 1; min-height: 760px">
+      <div style="position: absolute; inset: 0; overflow: auto; background-color: #14161a; background-image: radial-gradient(#23262c 1px, transparent 1px); background-size: 20px 20px">
+        <div style="position: relative; width: 900px; height: 560px; margin: 40px">
+
+          <svg width="900" height="560" viewBox="0 0 900 560" style="position: absolute; left: 0; top: 0" aria-hidden="true">
+            <defs>
+              <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#7c8592"></path></marker>
+              <marker id="ahg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4f5560"></path></marker>
+              <marker id="ahh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8fbaff"></path></marker>
+            </defs>
+            <path d="M142 152 L142 182" stroke="#7c8592" stroke-width="1.5" fill="none" marker-end="url(#ah)"></path>
+            <path d="M236 132 C300 216 600 216 658 132" stroke="#4f5560" stroke-width="1.5" fill="none" marker-end="url(#ahg)"></path>
+            <path d="M236 204 C300 216 600 220 658 300" stroke="#7c8592" stroke-width="1.5" fill="none" marker-end="url(#ah)"></path>
+            <path d="M448 152 L448 278" stroke="#7c8592" stroke-width="1.5" fill="none" marker-end="url(#ah)"></path>
+            <path d="M542 300 L658 300" stroke="#7c8592" stroke-width="1.5" fill="none" marker-end="url(#ah)"></path>
+            <path d="M542 310 C600 310 600 412 658 412" stroke="#8fbaff" stroke-width="2.5" fill="none" marker-end="url(#ahh)"></path>
+          </svg>
+
+          <div style="position: absolute; left: 24px; top: 56px; font-size: 12px; font-weight: 600; color: #c3c8cf">UI</div>
+          <div style="position: absolute; left: 24px; top: 80px; width: 236px; height: 232px; box-sizing: border-box; border: 1px solid #3a3f48; border-radius: 12px; background: rgba(255,255,255,0.02)"></div>
+          <div style="position: absolute; left: 330px; top: 56px; font-size: 12px; font-weight: 600; color: #c3c8cf">API</div>
+          <div style="position: absolute; left: 330px; top: 80px; width: 236px; height: 104px; box-sizing: border-box; border: 1px solid #3a3f48; border-radius: 12px; background: rgba(255,255,255,0.02)"></div>
+          <div style="position: absolute; left: 330px; top: 224px; font-size: 12px; font-weight: 600; color: #c3c8cf">Services</div>
+          <div style="position: absolute; left: 330px; top: 248px; width: 236px; height: 176px; box-sizing: border-box; border: 1px solid #3a3f48; border-radius: 12px; background: rgba(255,255,255,0.02)"></div>
+          <div style="position: absolute; left: 636px; top: 224px; font-size: 12px; font-weight: 600; color: #c3c8cf">Shared</div>
+          <div style="position: absolute; left: 636px; top: 248px; width: 236px; height: 104px; box-sizing: border-box; border: 1px solid #3a3f48; border-radius: 12px; background: rgba(255,255,255,0.02)"></div>
+
+          <div style="position: absolute; left: 48px; top: 112px; width: 188px; height: 40px; box-sizing: border-box; display: flex; align-items: center; padding: 0 10px; border: 1.5px solid #6aa9ff; border-radius: 6px; background: #1d2736; font-family: 'JetBrains Mono', monospace; font-size: 12px">DashboardPage.tsx</div>
+          <div style="position: absolute; left: 48px; top: 184px; width: 188px; height: 40px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 10px; border: 1.5px solid #b39cf5; border-radius: 6px; background: #241f36; font-family: 'JetBrains Mono', monospace; font-size: 12px"><span>SyncBanner.tsx</span><span style="font-family: Inter, sans-serif; font-size: 10px; color: #cdbefa">renamed</span></div>
+          <div style="position: absolute; left: 48px; top: 256px; width: 188px; height: 40px; box-sizing: border-box; display: flex; align-items: center; padding: 0 10px; border: 1.5px solid #f07a7a; border-radius: 6px; background: #2e1c1e; color: #f3a3a3; font-family: 'JetBrains Mono', monospace; font-size: 12px; text-decoration: line-through">SyncButton.tsx</div>
+          <div style="position: absolute; left: 354px; top: 112px; width: 188px; height: 40px; box-sizing: border-box; display: flex; align-items: center; padding: 0 10px; border: 1.5px solid #6aa9ff; border-radius: 6px; background: #1d2736; font-family: 'JetBrains Mono', monospace; font-size: 12px">routes/emails.ts</div>
+          <div style="position: absolute; left: 354px; top: 280px; width: 188px; height: 40px; box-sizing: border-box; display: flex; align-items: center; padding: 0 10px; border: 1.5px solid #6aa9ff; border-radius: 6px; background: #1d2736; font-family: 'JetBrains Mono', monospace; font-size: 12px">syncService.ts</div>
+          <div style="position: absolute; left: 354px; top: 352px; width: 188px; height: 40px; box-sizing: border-box; display: flex; align-items: center; padding: 0 10px; border: 1.5px dotted #e0a050; border-radius: 6px; background: #2b2318; font-family: 'JetBrains Mono', monospace; font-size: 12px">mockEmails.json</div>
+          <div style="position: absolute; left: 660px; top: 280px; width: 188px; height: 40px; box-sizing: border-box; display: flex; align-items: center; padding: 0 10px; border: 1.5px solid #6aa9ff; border-radius: 6px; background: #1d2736; font-family: 'JetBrains Mono', monospace; font-size: 12px">types.ts</div>
+          <div style="position: absolute; left: 660px; top: 112px; width: 188px; height: 40px; box-sizing: border-box; display: flex; align-items: center; padding: 0 10px; border: 1.5px dashed #4f5560; border-radius: 6px; background: #17191d; color: #8b929c; font-family: 'JetBrains Mono', monospace; font-size: 12px">api/client.ts</div>
+          <div style="position: absolute; left: 660px; top: 392px; width: 188px; height: 40px; box-sizing: border-box; display: flex; align-items: center; padding: 0 10px; border: 1.5px dashed #4f5560; border-radius: 6px; background: #17191d; color: #8b929c; font-family: 'JetBrains Mono', monospace; font-size: 12px">mockEmailProvider.ts</div>
+
+          <div style="position: absolute; left: 600px; top: 452px; width: 280px; box-sizing: border-box; padding: 12px 14px; border: 1px solid #3a3f48; border-radius: 8px; background: #22262d; box-shadow: 0 8px 24px rgba(0,0,0,0.45); display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 600; color: #8fbaff">fetches emails from</span>
+            <span style="font-size: 12px; line-height: 1.5; color: #d4d8dd">syncService calls fetchEmails() on the provider to pull unprocessed emails before classifying them.</span>
+          </div>
+
+        </div>
+      </div>
+
+      <div style="position: absolute; right: 20px; bottom: 20px; padding: 12px 14px; border: 1px solid #2a2e35; border-radius: 8px; background: #1b1e23; display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: #c3c8cf">
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #9aa1ab">Legend</span>
+        <span style="display: flex; align-items: center; gap: 8px"><span style="width: 22px; height: 12px; box-sizing: border-box; border: 1.5px solid #6aa9ff; border-radius: 3px; background: #1d2736"></span>Changed</span>
+        <span style="display: flex; align-items: center; gap: 8px"><span style="width: 22px; height: 12px; box-sizing: border-box; border: 1.5px dashed #4f5560; border-radius: 3px; background: #17191d"></span>Unchanged import</span>
+        <span style="display: flex; align-items: center; gap: 8px"><span style="width: 22px; height: 12px; box-sizing: border-box; border: 1.5px dotted #e0a050; border-radius: 3px; background: #2b2318"></span>Non-TypeScript</span>
+        <span style="display: flex; align-items: center; gap: 8px"><span style="width: 22px; height: 12px; box-sizing: border-box; border: 1.5px solid #f07a7a; border-radius: 3px; background: #2e1c1e"></span>Deleted</span>
+        <span style="display: flex; align-items: center; gap: 8px"><span style="width: 22px; height: 12px; box-sizing: border-box; border: 1.5px solid #b39cf5; border-radius: 3px; background: #241f36"></span>Renamed</span>
+        <span style="display: flex; align-items: center; gap: 8px"><svg width="22" height="10" viewBox="0 0 22 10" aria-hidden="true"><path d="M1 5H18" stroke="#7c8592" stroke-width="1.5"></path><path d="M16 1L21 5L16 9z" fill="#7c8592"></path></svg>Imports (depends on)</span>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>
