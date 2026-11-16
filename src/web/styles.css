@@ -1,0 +1,117 @@
+/* Colour tokens from the Visual design section of docs/SPEC.md. */
+:root {
+  --bg: #14161a;
+  --grid-dot: #23262c;
+  --panel: #1b1e23;
+  --status-bar: #181a1f;
+  --border: #2a2e35;
+  --layer-border: #3a3f48;
+  --text: #e6e8eb;
+  --text-secondary: #d4d8dd;
+  --text-muted: #9aa1ab;
+  --accent: #8fbaff;
+  --error: #f07a7a;
+
+  --font-ui: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+}
+
+.app {
+  display: flex;
+  height: 100%;
+}
+
+.sidebar {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+}
+
+.sidebar-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.project-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.project-name svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.project-path {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.load-error {
+  font-size: 12px;
+  color: var(--error);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.graph-area {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.empty-state {
+  text-align: center;
+}
+
+.empty-title {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.empty-body {
+  margin: 0;
+  color: var(--text-muted);
+}
