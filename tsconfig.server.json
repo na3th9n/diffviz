@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "rootDir": "src",
+    "outDir": "dist",
+    // Turns `./project.ts` into `./project.js` in the compiled output.
+    "rewriteRelativeImportExtensions": true
+  },
+  "include": ["src/server", "src/shared"]
+}

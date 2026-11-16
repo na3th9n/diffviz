@@ -1,0 +1,15 @@
+{
+  // Shared settings. tsconfig.server.json and tsconfig.web.json extend this.
+  "compilerOptions": {
+    "target": "ES2023",
+    "strict": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    // Node runs the .ts source directly in dev, so code must only use syntax
+    // that can be erased (no enums or namespaces) and import with .ts extensions.
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}
