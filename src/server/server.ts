@@ -1,0 +1,131 @@
+import { existsSync } from "node:fs";
+import http from "node:http";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import express from "express";
+import { getProjectInfo } from "./project.ts";
+
+export type ServerMode = "dev" | "production";
+
+// The built UI sits next to the compiled server: dist/server/ and dist/web/.
+const DEFAULT_WEB_DIR = fileURLToPath(new URL("../web", import.meta.url));
+const VITE_CONFIG = fileURLToPath(new URL("../../vite.config.ts", import.meta.url));
+
+// Only bind to this machine: the server can read the whole project folder.
+const HOST = "127.0.0.1";
+
+type AppOptions = {
+  projectRoot: string;
+  mode: ServerMode;
+  httpServer: http.Server;  // Vite attaches its hot-reload socket to it in dev
+  webDir?: string;          // built UI folder, overridable for tests
+};
+
+type CreatedApp = {
+  app: express.Express;
+  close: () => Promise<void>;
+};
+
+export async function createApp(options: AppOptions): Promise<CreatedApp> {
+  const app = express();
+
+  app.get("/api/project", (_req, res) => {
+    res.json(getProjectInfo(options.projectRoot));
+  });
+
+  if (options.mode === "dev") {
+    // Imported only in dev, so production installs do not need Vite.
+    const { createServer } = await import("vite");
+    const vite = await createServer({
+      configFile: VITE_CONFIG,
+      appType: "spa",
+      server: { middlewareMode: true, hmr: { server: options.httpServer } },
+    });
+    app.use(vite.middlewares);
+    return { app, close: () => vite.close() };
+  }
+
+  const webDir = options.webDir ?? DEFAULT_WEB_DIR;
+  if (!existsSync(path.join(webDir, "index.html"))) {
+    throw new Error(`The UI has not been built (no index.html in ${webDir}). Run "npm run build".`);
+  }
+  app.use(express.static(webDir));
+  return { app, close: async () => {} };
+}
+
+type StartOptions = {
+  projectRoot: string;
+  mode: ServerMode;
+  port: number;
+  webDir?: string;
+};
+
+export type RunningServer = {
+  url: string;
+  port: number;
+  close: () => Promise<void>;
+};
+
+export async function startServer(options: StartOptions): Promise<RunningServer> {
+  const httpServer = http.createServer();
+  const created = await createApp({ ...options, httpServer });
+  httpServer.on("request", created.app);
+
+  const port = await listenOnOpenPort(httpServer, options.port);
+  return {
+    url: `http://localhost:${port}`,
+    port,
+    close: async () => {
+      await created.close();
+      await closeHttpServer(httpServer);
+    },
+  };
+}
+
+// Tries `preferred`, then the next ports, so a second copy of the App
+// (or anything else on 4300) does not stop it from starting.
+export async function listenOnOpenPort(
+  server: http.Server,
+  preferred: number,
+  maxAttempts = 10,
+): Promise<number> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const port = preferred + attempt;
+    try {
+      await listen(server, port);
+      return port;
+    } catch (error) {
+      if (!isAddressInUse(error)) throw error;
+    }
+  }
+  const last = preferred + maxAttempts - 1;
+  throw new Error(`No free port between ${preferred} and ${last}. Pass another with --port.`);
+}
+
+function listen(server: http.Server, port: number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const onError = (error: Error) => {
+      server.off("listening", onListening);
+      reject(error);
+    };
+    const onListening = () => {
+      server.off("error", onError);
+      resolve();
+    };
+    server.once("error", onError);
+    server.once("listening", onListening);
+    server.listen(port, HOST);
+  });
+}
+
+function isAddressInUse(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "EADDRINUSE";
+}
+
+function closeHttpServer(server: http.Server): Promise<void> {
+  return new Promise((resolve, reject) => {
+    server.close((error) => (error ? reject(error) : resolve()));
+    // Browsers keep connections open; without this, close() waits for them.
+    server.closeAllConnections();
+  });
+}
