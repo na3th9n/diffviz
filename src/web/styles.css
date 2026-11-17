@@ -10,7 +10,9 @@
   --text-secondary: #d4d8dd;
   --text-muted: #9aa1ab;
   --accent: #8fbaff;
-  --error: #f07a7a;
+  --error: #f07a7a;    /* deleted-node red */
+  --warning: #e0a050;  /* non-TypeScript amber */
+  --ok: #5fd08a;       /* "in progress" dot in the mockup */
 
   --font-ui: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -114,4 +116,68 @@ body {
 .empty-body {
   margin: 0;
   color: var(--text-muted);
+}
+
+/* Status bar above the graph. */
+.status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--status-bar);
+  font-size: 13px;
+}
+
+.status-left,
+.status-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot-idle {
+  background: var(--text-muted);
+}
+
+.dot-active {
+  background: var(--ok);
+}
+
+.dot-warning {
+  background: var(--warning);
+}
+
+.dot-error {
+  background: var(--error);
+}
+
+.status-error {
+  color: var(--warning);
+  cursor: help;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
 }
