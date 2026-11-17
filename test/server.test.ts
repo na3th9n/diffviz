@@ -4,6 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { listenOnOpenPort, startServer, type RunningServer } from "../src/server/server.ts";
+import { createRepo } from "./helpers/gitRepo.ts";
+import { openSse } from "./helpers/sse.ts";
 
 // A fake project folder and a fake built UI, so the test does not need `npm run build`.
 function makeFixture() {
@@ -51,6 +53,53 @@ describe("startServer in production mode", () => {
     await expect(
       startServer({ projectRoot, webDir: emptyWebDir, mode: "production", port: 4390 }),
     ).rejects.toThrow(/npm run build/);
+  });
+});
+
+describe("GET /api/events", () => {
+  // The fake UI folder is reused; only the project root matters here.
+  const { webDir } = makeFixture();
+
+  it("sends the current git status as soon as a browser connects", async () => {
+    const repo = createRepo({ "a.ts": "a" });
+    const server = await start({ projectRoot: repo.root, webDir, mode: "production", port: 4390 });
+
+    const events = await openSse(`${server.url}/api/events`);
+    cleanups.push(events.close);
+    const first = await events.next();
+
+    expect(first.event).toBe("git-status");
+    expect(first.data).toMatchObject({ kind: "ready", isClean: true, errors: [] });
+  });
+
+  it("pushes a new status when a file changes, and again after a commit", async () => {
+    const repo = createRepo({ "a.ts": "a" });
+    const server = await start({ projectRoot: repo.root, webDir, mode: "production", port: 4390 });
+    const events = await openSse(`${server.url}/api/events`);
+    cleanups.push(events.close);
+    await events.next();  // initial clean status
+
+    repo.write("a.ts", "changed");
+    expect((await events.next()).data).toMatchObject({
+      kind: "ready",
+      isClean: false,
+      changes: [{ path: "a.ts", change: "modified" }],
+    });
+
+    const newHead = repo.commitAll();
+    // A commit can arrive as more than one burst of events; wait for the clean one.
+    let status = (await events.next()).data as { isClean: boolean; baseCommit: string };
+    while (!status.isClean) status = (await events.next()).data as typeof status;
+    expect(status.baseCommit).toBe(newHead);
+  });
+
+  it("reports a folder that is not a git repository", async () => {
+    const { projectRoot } = makeFixture();
+    const server = await start({ projectRoot, webDir, mode: "production", port: 4390 });
+    const events = await openSse(`${server.url}/api/events`);
+    cleanups.push(events.close);
+
+    expect((await events.next()).data).toEqual({ kind: "notGitRepo" });
   });
 });
 

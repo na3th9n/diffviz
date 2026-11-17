@@ -3,7 +3,12 @@ import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
+import type { GitStatus } from "../shared/types.ts";
+import { gitStatusStream } from "./events.ts";
+import { getGitDir } from "./git.ts";
+import { GitTracker } from "./gitTracker.ts";
 import { getProjectInfo } from "./project.ts";
+import { watchProject } from "./watcher.ts";
 
 export type ServerMode = "dev" | "production";
 
@@ -18,6 +23,7 @@ type AppOptions = {
   projectRoot: string;
   mode: ServerMode;
   httpServer: http.Server;  // Vite attaches its hot-reload socket to it in dev
+  tracker: GitTracker;      // source of the git status pushed over /api/events
   webDir?: string;          // built UI folder, overridable for tests
 };
 
@@ -32,6 +38,8 @@ export async function createApp(options: AppOptions): Promise<CreatedApp> {
   app.get("/api/project", (_req, res) => {
     res.json(getProjectInfo(options.projectRoot));
   });
+
+  app.get("/api/events", gitStatusStream(options.tracker));
 
   if (options.mode === "dev") {
     // Imported only in dev, so production installs do not need Vite.
@@ -63,19 +71,38 @@ type StartOptions = {
 export type RunningServer = {
   url: string;
   port: number;
+  getGitStatus: () => GitStatus | null;
   close: () => Promise<void>;
 };
 
 export async function startServer(options: StartOptions): Promise<RunningServer> {
+  // Read git once before serving, so the first browser connection gets a real status.
+  const tracker = new GitTracker(options.projectRoot);
+  await tracker.refresh();
+
+  const watcher = watchProject({
+    root: options.projectRoot,
+    gitDir: await getGitDir(options.projectRoot),
+    onChange: () => {
+      // A failed refresh keeps the last status on screen; the next change tries again.
+      tracker.refresh().catch((error: unknown) => {
+        console.error("diffviz: could not read git state:", error);
+      });
+    },
+  });
+
   const httpServer = http.createServer();
-  const created = await createApp({ ...options, httpServer });
+  const created = await createApp({ ...options, httpServer, tracker });
   httpServer.on("request", created.app);
 
   const port = await listenOnOpenPort(httpServer, options.port);
+  await watcher.ready;
   return {
     url: `http://localhost:${port}`,
     port,
+    getGitStatus: () => tracker.getStatus(),
     close: async () => {
+      await watcher.close();
       await created.close();
       await closeHttpServer(httpServer);
     },
