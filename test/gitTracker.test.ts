@@ -50,6 +50,25 @@ describe("GitTracker", () => {
     expect(expectReady(await tracker.refresh()).errors).toEqual([]);
   });
 
+  it("clears the dirty-at-launch warning after a partial commit, even though the tree is still dirty", async () => {
+    const repo = createRepo({ "a.ts": "a", "b.ts": "b" });
+    repo.write("a.ts", "a changed before launch");
+    repo.write("b.ts", "b changed before launch");
+    const tracker = new GitTracker(repo.root);
+    expect(expectReady(await tracker.refresh()).errors.map((e) => e.code)).toEqual(["dirtyAtLaunch"]);
+
+    // Commit only a.ts; b.ts stays modified.
+    repo.git("add", "a.ts");
+    repo.git("commit", "--quiet", "-m", "only a");
+    const status = expectReady(await tracker.refresh());
+
+    expect(status.baseCommit).toBe(repo.git("rev-parse", "HEAD").trim());
+    expect(status.isClean).toBe(false);
+    expect(status.changes).toEqual([{ path: "b.ts", change: "modified" }]);
+    // The warning is decided once at launch; any new commit turns it off for good.
+    expect(status.errors).toEqual([]);
+  });
+
   it("starts a new base after a commit", async () => {
     const repo = createRepo({ "a.ts": "a" });
     const tracker = new GitTracker(repo.root);
