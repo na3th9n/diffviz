@@ -1,7 +1,8 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 // A real git repository in a temp folder, for fixture tests.
 export type TestRepo = {
@@ -62,4 +63,15 @@ export function createRepo(files: Record<string, string> | null, root = makeTemp
 // Long enough that git's rename detection can match a moved file by content.
 export function sourceFile(name: string): string {
   return Array.from({ length: 20 }, (_, i) => `export const ${name}${i} = ${i};`).join("\n") + "\n";
+}
+
+// Copies a project from fixtures/ into a temp folder and commits it, so tests
+// can change files and compare the graph against a known starting point.
+export function createRepoFromFixture(name: string): TestRepo {
+  const source = fileURLToPath(new URL(`../../fixtures/${name}`, import.meta.url));
+  const root = makeTempDir(`diffviz-${name}-`);
+  cpSync(source, root, { recursive: true });
+  const repo = createRepo(null, root);
+  repo.commitAll("fixture");
+  return repo;
 }

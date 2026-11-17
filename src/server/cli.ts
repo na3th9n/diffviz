@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import type { GitStatus } from "../shared/types.ts";
+import type { AppState } from "../shared/types.ts";
 import { parseArgs } from "./args.ts";
 import { openBrowser } from "./browser.ts";
 import { assertDirectory, getProjectInfo } from "./project.ts";
@@ -19,7 +19,7 @@ async function main(): Promise<void> {
   console.log(`diffviz is watching ${project.displayPath}`);
   console.log(`Open ${server.url}${options.dev ? " (dev mode)" : ""}`);
 
-  const warning = gitWarning(server.getGitStatus());
+  const warning = gitWarning(server.getState());
   if (warning) console.warn(`Warning: ${warning}`);
 
   if (options.open) openBrowser(server.url);
@@ -39,15 +39,15 @@ async function main(): Promise<void> {
 
 // The same problems are shown in the UI; printing them here too means they are
 // seen even if the browser does not open.
-function gitWarning(status: GitStatus | null): string | null {
-  if (status === null) return null;
-  switch (status.kind) {
+function gitWarning(state: AppState | null): string | null {
+  if (state === null) return null;
+  switch (state.repo) {
     case "notGitRepo":
       return "this folder is not a git repository, so diffviz can't build a graph. Run `git init` and make a first commit.";
     case "noCommits":
       return "this repository has no commits yet. Make a first commit so diffviz has something to compare against.";
     case "ready":
-      return status.errors.find((error) => error.code === "dirtyAtLaunch")?.message ?? null;
+      return state.graph?.errors.find((error) => error.code === "dirtyAtLaunch")?.message ?? null;
   }
 }
 

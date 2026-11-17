@@ -1,8 +1,6 @@
 import type { GitStatus, StatusError } from "../shared/types.ts";
 import { checkRepo, getChanges, getHeadCommit } from "./git.ts";
 
-type Listener = (status: GitStatus) => void;
-
 const DIRTY_AT_LAUNCH: StatusError = {
   code: "dirtyAtLaunch",
   message:
@@ -10,61 +8,21 @@ const DIRTY_AT_LAUNCH: StatusError = {
     "Commit them to start a clean one.",
 };
 
-// Keeps the git state of the project between refreshes: which commit the
-// current session part started from, and whether the tree was dirty at launch.
+// Reads the project's git state and remembers what it needs between reads:
+// which commit the current session part started from, which session part this
+// is, and whether the tree was dirty at launch. Callers must not overlap
+// readStatus() calls; ProjectState makes sure of that.
 export class GitTracker {
   private readonly root: string;
-  private status: GitStatus | null = null;
   private baseCommit: string | null = null;
+  private sessionPart = 0;
   private dirtyAtLaunch = false;
-  private readonly listeners = new Set<Listener>();
-
-  // Refreshes never overlap. A request that arrives during a refresh sets
-  // `rerunRequested`, and the running loop does one more pass, so the last
-  // change is always picked up without running git several times at once.
-  private inFlight: Promise<GitStatus> | null = null;
-  private rerunRequested = false;
 
   constructor(root: string) {
     this.root = root;
   }
 
-  // The latest status, or null before the first refresh finishes.
-  getStatus(): GitStatus | null {
-    return this.status;
-  }
-
-  // Calls `listener` after every refresh. Returns a function that unsubscribes.
-  onUpdate(listener: Listener): () => void {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
-  }
-
-  // Re-reads git. Resolves with a status that reflects the files at, or after,
-  // the moment refresh() was called.
-  refresh(): Promise<GitStatus> {
-    if (this.inFlight) {
-      this.rerunRequested = true;
-      return this.inFlight;
-    }
-    this.inFlight = this.refreshLoop().finally(() => {
-      this.inFlight = null;
-    });
-    return this.inFlight;
-  }
-
-  private async refreshLoop(): Promise<GitStatus> {
-    let status: GitStatus;
-    do {
-      this.rerunRequested = false;
-      status = await this.readStatus();
-      this.status = status;
-      for (const listener of this.listeners) listener(status);
-    } while (this.rerunRequested);
-    return status;
-  }
-
-  private async readStatus(): Promise<GitStatus> {
+  async readStatus(): Promise<GitStatus> {
     const repo = await checkRepo(this.root);
     if (repo !== "ready") return { kind: repo };
 
@@ -77,15 +35,19 @@ export class GitTracker {
       // First time this folder is a usable repo: normally at launch, or after the
       // user runs `git init` and makes a first commit while the App is open.
       this.dirtyAtLaunch = !isClean;
+      this.sessionPart = 1;
     } else if (head !== this.baseCommit) {
-      // HEAD moved, usually because of a commit: the session part ended and a new
-      // one starts from this commit. (A branch checkout or reset also lands here.)
+      // HEAD moved to another commit, usually because of a commit: the session
+      // part ended and a new one starts from here. (A checkout of a branch on a
+      // different commit, or a reset, also lands here.)
       this.dirtyAtLaunch = false;
+      this.sessionPart += 1;
     }
     this.baseCommit = head;
 
     return {
       kind: "ready",
+      sessionPart: this.sessionPart,
       baseCommit: head,
       isClean,
       changes,

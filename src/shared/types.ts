@@ -28,6 +28,7 @@ export type FileChange = {
 export type GitStatus =
   | {
       kind: "ready";
+      sessionPart: number;     // 1 for the first session part since the App started
       baseCommit: string;      // hash of the commit the session part started from
       isClean: boolean;        // true when nothing differs from baseCommit
       changes: FileChange[];

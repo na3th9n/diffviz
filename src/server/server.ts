@@ -3,11 +3,11 @@ import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
-import type { GitStatus } from "../shared/types.ts";
-import { gitStatusStream } from "./events.ts";
+import type { AppState } from "../shared/types.ts";
+import { stateStream } from "./events.ts";
 import { getGitDir } from "./git.ts";
-import { GitTracker } from "./gitTracker.ts";
 import { getProjectInfo } from "./project.ts";
+import { ProjectState } from "./projectState.ts";
 import { watchProject } from "./watcher.ts";
 
 export type ServerMode = "dev" | "production";
@@ -23,7 +23,7 @@ type AppOptions = {
   projectRoot: string;
   mode: ServerMode;
   httpServer: http.Server;  // Vite attaches its hot-reload socket to it in dev
-  tracker: GitTracker;      // source of the git status pushed over /api/events
+  projectState: ProjectState;  // source of the state pushed over /api/events
   webDir?: string;          // built UI folder, overridable for tests
 };
 
@@ -39,7 +39,7 @@ export async function createApp(options: AppOptions): Promise<CreatedApp> {
     res.json(getProjectInfo(options.projectRoot));
   });
 
-  app.get("/api/events", gitStatusStream(options.tracker));
+  app.get("/api/events", stateStream(options.projectState));
 
   if (options.mode === "dev") {
     // Imported only in dev, so production installs do not need Vite.
@@ -71,28 +71,28 @@ type StartOptions = {
 export type RunningServer = {
   url: string;
   port: number;
-  getGitStatus: () => GitStatus | null;
+  getState: () => AppState | null;
   close: () => Promise<void>;
 };
 
 export async function startServer(options: StartOptions): Promise<RunningServer> {
-  // Read git once before serving, so the first browser connection gets a real status.
-  const tracker = new GitTracker(options.projectRoot);
-  await tracker.refresh();
+  // Build the state once before serving, so the first browser connection gets a real one.
+  const projectState = new ProjectState(options.projectRoot);
+  await projectState.refresh();
 
   const watcher = watchProject({
     root: options.projectRoot,
     gitDir: await getGitDir(options.projectRoot),
     onChange: () => {
-      // A failed refresh keeps the last status on screen; the next change tries again.
-      tracker.refresh().catch((error: unknown) => {
-        console.error("diffviz: could not read git state:", error);
+      // A failed refresh keeps the last state on screen; the next change tries again.
+      projectState.refresh().catch((error: unknown) => {
+        console.error("diffviz: could not refresh the graph:", error);
       });
     },
   });
 
   const httpServer = http.createServer();
-  const created = await createApp({ ...options, httpServer, tracker });
+  const created = await createApp({ ...options, httpServer, projectState });
   httpServer.on("request", created.app);
 
   const port = await listenOnOpenPort(httpServer, options.port);
@@ -100,7 +100,7 @@ export async function startServer(options: StartOptions): Promise<RunningServer>
   return {
     url: `http://localhost:${port}`,
     port,
-    getGitStatus: () => tracker.getStatus(),
+    getState: () => projectState.getState(),
     close: async () => {
       await watcher.close();
       await created.close();

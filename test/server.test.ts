@@ -60,7 +60,7 @@ describe("GET /api/events", () => {
   // The fake UI folder is reused; only the project root matters here.
   const { webDir } = makeFixture();
 
-  it("sends the current git status as soon as a browser connects", async () => {
+  it("sends the current state as soon as a browser connects", async () => {
     const repo = createRepo({ "a.ts": "a" });
     const server = await start({ projectRoot: repo.root, webDir, mode: "production", port: 4390 });
 
@@ -68,29 +68,37 @@ describe("GET /api/events", () => {
     cleanups.push(events.close);
     const first = await events.next();
 
-    expect(first.event).toBe("git-status");
-    expect(first.data).toMatchObject({ kind: "ready", isClean: true, errors: [] });
+    expect(first.event).toBe("state");
+    expect(first.data).toMatchObject({ repo: "ready", graph: { sessionPart: 1, isClean: true, errors: [], nodes: [] } });
   });
 
-  it("pushes a new status when a file changes, and again after a commit", async () => {
-    const repo = createRepo({ "a.ts": "a" });
+  it("pushes a new graph when a file changes, and again after a commit", async () => {
+    const repo = createRepo({ "a.ts": "export const a = 1;", "b.ts": "export const b = 1;" });
     const server = await start({ projectRoot: repo.root, webDir, mode: "production", port: 4390 });
     const events = await openSse(`${server.url}/api/events`);
     cleanups.push(events.close);
-    await events.next();  // initial clean status
+    await events.next();  // initial clean state
 
-    repo.write("a.ts", "changed");
+    repo.write("a.ts", 'import { b } from "./b";\nexport const a = b;');
     expect((await events.next()).data).toMatchObject({
-      kind: "ready",
-      isClean: false,
-      changes: [{ path: "a.ts", change: "modified" }],
+      repo: "ready",
+      graph: {
+        isClean: false,
+        nodes: [
+          { id: "a.ts", status: "changed" },
+          { id: "b.ts", status: "unchangedImport" },
+        ],
+        edges: [{ id: "a.ts->b.ts", source: "a.ts", target: "b.ts" }],
+      },
     });
 
     const newHead = repo.commitAll();
     // A commit can arrive as more than one burst of events; wait for the clean one.
-    let status = (await events.next()).data as { isClean: boolean; baseCommit: string };
-    while (!status.isClean) status = (await events.next()).data as typeof status;
-    expect(status.baseCommit).toBe(newHead);
+    type Graph = { isClean: boolean; baseCommit: string; sessionPart: number };
+    let graph = ((await events.next()).data as { graph: Graph }).graph;
+    while (!graph.isClean) graph = ((await events.next()).data as { graph: Graph }).graph;
+    expect(graph.baseCommit).toBe(newHead);
+    expect(graph.sessionPart).toBe(2);
   });
 
   it("reports a folder that is not a git repository", async () => {
@@ -99,7 +107,7 @@ describe("GET /api/events", () => {
     const events = await openSse(`${server.url}/api/events`);
     cleanups.push(events.close);
 
-    expect((await events.next()).data).toEqual({ kind: "notGitRepo" });
+    expect((await events.next()).data).toEqual({ repo: "notGitRepo", graph: null });
   });
 });
 
