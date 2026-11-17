@@ -34,7 +34,7 @@ describe("startServer in production mode", () => {
 
     const response = await fetch(`${server.url}/api/project`);
     expect(response.status).toBe(200);
-    expect((await response.json()).name).toBe("job-tracker");
+    expect(((await response.json()) as { name: string }).name).toBe("job-tracker");
   });
 
   it("serves the built UI at /", async () => {

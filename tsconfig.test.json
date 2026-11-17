@@ -1,0 +1,9 @@
+{
+  // Type-checks the tests along with the server code they import. Never emits.
+  "extends": "./tsconfig.server.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true
+  },
+  "include": ["src/server", "src/shared", "test"]
+}
