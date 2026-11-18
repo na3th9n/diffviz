@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "files": [{ "path": 42, "description": "A number instead of a path." }],
+  "layers": [],
+  "relationships": []
+}

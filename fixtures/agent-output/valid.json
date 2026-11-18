@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "summary": "Added a date helper and used it in the app header.\n\nThe App now shows today's date next to the title.",
+  "files": [
+    { "path": "src/App.tsx", "description": "Renders today's date next to the title." },
+    { "path": "src/utils/date.ts", "description": "New helper that formats today's date with formatLabel." }
+  ],
+  "layers": [
+    { "id": "ui", "name": "UI", "description": "React components.", "paths": ["src/App.tsx"] },
+    { "id": "utils", "name": "Utilities", "description": "Small shared helpers.", "paths": ["src/utils/date.ts"] }
+  ],
+  "relationships": [
+    { "source": "src/App.tsx", "target": "src/components/index.ts", "label": "renders", "description": "App renders the Button from the components index." },
+    { "source": "src/utils/date.ts", "target": "src/utils/format.ts", "label": "formats with", "description": "today() passes the date through formatLabel." }
+  ]
+}

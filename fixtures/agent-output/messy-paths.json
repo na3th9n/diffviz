@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "summary": "Added a date helper.",
+  "model": "an extra field the App does not know",
+  "files": [
+    { "path": "./src/App.tsx", "description": "Leading ./ is removed." },
+    { "path": "src\\utils\\date.ts", "description": "Backslashes become forward slashes." },
+    { "path": "src/App.tsx", "description": "A second note for the same file is dropped." },
+    { "path": "src/utils/format.ts", "description": "Unchanged import: no tooltip, so dropped." },
+    { "path": "src/Missing.tsx", "description": "Not in the graph, so dropped." }
+  ],
+  "layers": [
+    { "id": "ui", "name": "UI", "description": "Components.", "paths": ["/src/App.tsx", "src/ui/../App.tsx"] },
+    { "id": "utils", "name": "Utilities", "description": "Helpers.", "paths": ["src/utils/date.ts", "src/App.tsx"] },
+    { "id": "ghost", "name": "Ghost", "description": "Only unknown files, so the layer is dropped.", "paths": ["src/Nope.ts"] },
+    { "id": "ui", "name": "UI again", "description": "Duplicate id, so dropped.", "paths": ["src/utils/format.ts"] }
+  ],
+  "relationships": [
+    { "source": "./src/App.tsx", "target": "src/App.module.css", "label": "styled by", "description": "Matches a real import." },
+    { "source": "src/utils/date.ts", "target": "src/App.tsx", "label": "used by", "description": "Wrong direction: not a real import." }
+  ]
+}
