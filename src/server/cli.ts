@@ -3,11 +3,17 @@ import type { AppState } from "../shared/types.ts";
 import { parseArgs } from "./args.ts";
 import { openBrowser } from "./browser.ts";
 import { assertDirectory, getProjectInfo } from "./project.ts";
+import { getGitDir } from "./git.ts";
 import { startServer } from "./server.ts";
+import { runSetup, type SetupResult } from "./setup.ts";
 
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2), process.cwd());
   assertDirectory(options.root);
+
+  // Before the server starts, so its first look at the tree already includes
+  // any CLAUDE.md change.
+  const setup = await runSetup(options.root, await getGitDir(options.root));
 
   const server = await startServer({
     projectRoot: options.root,
@@ -19,6 +25,7 @@ async function main(): Promise<void> {
   console.log(`diffviz is watching ${project.displayPath}`);
   console.log(`Open ${server.url}${options.dev ? " (dev mode)" : ""}`);
 
+  printSetup(setup);
   const warning = gitWarning(server.getState());
   if (warning) console.warn(`Warning: ${warning}`);
 
@@ -35,6 +42,17 @@ async function main(): Promise<void> {
   };
   process.once("SIGINT", shutdown);
   process.once("SIGTERM", shutdown);
+}
+
+function printSetup(setup: SetupResult): void {
+  for (const { file, change } of setup.changes) {
+    if (file === "CLAUDE.md") {
+      console.log(`${change === "created" ? "Created" : "Updated"} CLAUDE.md with instructions for Claude Code. Commit it before you start, so it isn't part of the graph.`);
+    } else {
+      console.log(`${change === "created" ? "Created" : "Updated"} ${file} with the hooks that tell diffviz about each prompt and response.`);
+    }
+  }
+  for (const warning of setup.warnings) console.warn(`Warning: ${warning}`);
 }
 
 // The same problems are shown in the UI; printing them here too means they are
