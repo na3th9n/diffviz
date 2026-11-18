@@ -3,7 +3,15 @@
   "extends": "./tsconfig.server.json",
   "compilerOptions": {
     "rootDir": ".",
-    "noEmit": true
+    "noEmit": true,
+    // Vitest loads tests through Vite, so check them with Vite's resolution rules.
+    // The server code is still checked with Node's rules by tsconfig.server.json.
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "rewriteRelativeImportExtensions": false,
+    // The UI's pure graph modules are tested too; they use DOM and JSX types.
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx"
   },
-  "include": ["src/server", "src/shared", "test"]
+  "include": ["src/server", "src/shared", "src/web/graph", "test"]
 }
