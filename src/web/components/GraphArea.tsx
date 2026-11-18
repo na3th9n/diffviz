@@ -1,10 +1,10 @@
-import type { AppState, GraphState } from "../../shared/types.ts";
+import type { AppState } from "../../shared/types.ts";
+import { GraphView } from "./GraphView.tsx";
 
-// The graph view. Until the graph is drawn (Part 4), it shows a message
-// for each state, and the raw GraphState once there are changes.
+// The graph view when there are changes, and a message for every other state.
 export function GraphArea({ state }: { state: AppState | null }) {
   const graph = state?.repo === "ready" ? state.graph : null;
-  if (graph && !graph.isClean) return <RawGraph graph={graph} />;
+  if (graph && !graph.isClean) return <GraphView graph={graph} />;
 
   const message = emptyMessage(state);
   return (
@@ -13,15 +13,6 @@ export function GraphArea({ state }: { state: AppState | null }) {
         <p className="empty-title">{message.title}</p>
         <p className="empty-body">{message.body}</p>
       </div>
-    </div>
-  );
-}
-
-// Temporary checkpoint view for Part 3: the GraphState as the server sent it.
-function RawGraph({ graph }: { graph: GraphState }) {
-  return (
-    <div className="graph-area graph-area-raw">
-      <pre className="raw-json">{JSON.stringify(graph, null, 2)}</pre>
     </div>
   );
 }

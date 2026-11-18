@@ -9,10 +9,13 @@
   --text: #e6e8eb;
   --text-secondary: #d4d8dd;
   --text-muted: #9aa1ab;
-  --accent: #8fbaff;
   --error: #f07a7a;    /* deleted-node red */
   --warning: #e0a050;  /* non-TypeScript amber */
   --ok: #5fd08a;       /* "in progress" dot in the mockup */
+  --accent: #8fbaff;
+  --edge: #7c8592;
+  --edge-dim: #4f5560;
+  --tooltip-bg: #22262d;
 
   --font-ui: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -182,19 +185,255 @@ body {
   color: var(--text-secondary);
 }
 
-/* Part 3 checkpoint: raw GraphState JSON, replaced by the real graph in Part 4. */
-.graph-area-raw {
-  min-height: 0;  /* lets the flex child scroll instead of growing the page */
-  align-items: stretch;
-  justify-content: stretch;
-  overflow: auto;
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
-.raw-json {
-  margin: 0;
-  padding: 20px;
+/* ---- Graph canvas ---- */
+
+.graph-canvas {
+  /* The canvas fills the area; the dot grid comes from React Flow's <Background>. */
+  display: block;
+  background-image: none;
+  min-height: 0;
+}
+
+.graph-canvas .react-flow {
+  background: var(--bg);
+}
+
+.arrow-markers {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.graph-error {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  border: 1px solid var(--error);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--error);
+  font-size: 12px;
+}
+
+/* ---- File nodes (188×40, 6px radius, 1.5px border) ---- */
+
+.file-node {
+  box-sizing: border-box;
+  width: 188px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 0 10px;
+  border-width: 1.5px;
+  border-radius: 6px;
   font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.file-node-label {
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+/* Colour comes from the status. */
+.file-node-changed {
+  border-color: #6aa9ff;
+  background: #1d2736;
+  color: var(--text);
+}
+
+.file-node-unchangedImport {
+  border-color: #4f5560;
+  background: #17191d;
+  color: #8b929c;
+}
+
+.file-node-deleted {
+  border-color: #f07a7a;
+  background: #2e1c1e;
+  color: #f3a3a3;
+}
+
+.file-node-deleted .file-node-label {
+  text-decoration: line-through;
+}
+
+.file-node-renamed {
+  border-color: #b39cf5;
+  background: #241f36;
+  color: var(--text);
+}
+
+/* A changed non-TypeScript file uses the spec's amber "Non-TypeScript" colours. */
+.file-node-changed.file-node-other {
+  border-color: #e0a050;
+  background: #2b2318;
+}
+
+/* Border style comes from the file type: solid for TypeScript (dashed when it is an
+   unchanged import), dotted for everything else. */
+.file-node-ts {
+  border-style: solid;
+}
+
+.file-node-unchangedImport.file-node-ts {
+  border-style: dashed;
+}
+
+.file-node-other {
+  border-style: dotted;
+}
+
+.file-node-tag {
+  flex-shrink: 0;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: #cdbefa;
+}
+
+/* Handles are only anchor points for the arrows; they are never shown. */
+.file-node-handle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---- Import arrows (1.5px, filled triangle head; 2.5px accent on hover) ---- */
+
+.react-flow__edge-path.import-edge {
+  stroke: var(--edge);
+  stroke-width: 1.5;
+  marker-end: url(#diffviz-arrow);
+}
+
+.react-flow__edge-path.import-edge-dim {
+  stroke: var(--edge-dim);
+  marker-end: url(#diffviz-arrow-dim);
+}
+
+/* The canvas is read-only, so React Flow marks edges "inactive" and turns off their
+   mouse events. Hover still needs them: for the highlight now, and tooltips in Part 5. */
+.graph-canvas .react-flow__edge-import.inactive {
+  pointer-events: all;
+}
+
+.react-flow__edge:hover .react-flow__edge-path.import-edge {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  marker-end: url(#diffviz-arrow-hover);
+}
+
+/* ---- Tooltip ---- */
+
+.tooltip {
+  position: absolute;
+  z-index: 10;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--layer-border);
+  border-radius: 8px;
+  background: var(--tooltip-bg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.tooltip-title {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+
+.tooltip-body {
   font-size: 12px;
   line-height: 1.5;
   color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+/* ---- Legend ---- */
+
+.legend {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  font-size: 12px;
+  color: #c3c8cf;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-swatch {
+  box-sizing: border-box;
+  width: 22px;
+  height: 12px;
+  border-width: 1.5px;
+  border-radius: 3px;
+}
+
+/* ---- React Flow controls and attribution, in the dark theme ---- */
+
+.graph-canvas .react-flow__controls {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.graph-canvas .react-flow__controls-button {
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text-muted);
+  fill: var(--text-muted);
+  cursor: pointer;
+}
+
+.graph-canvas .react-flow__controls-button:last-child {
+  border-bottom: none;
+}
+
+.graph-canvas .react-flow__controls-button:hover {
+  background: var(--border);
+  color: var(--text);
+  fill: var(--text);
+}
+
+.graph-canvas .react-flow__attribution {
+  background: transparent;
+}
+
+.graph-canvas .react-flow__attribution a {
+  color: var(--text-muted);
 }
