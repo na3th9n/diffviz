@@ -19,6 +19,11 @@ const VITE_CONFIG = fileURLToPath(new URL("../../vite.config.ts", import.meta.ur
 // Only bind to this machine: the server can read the whole project folder.
 const HOST = "127.0.0.1";
 
+// On macOS the file watcher reports "ready" slightly before the system starts
+// delivering events, so a file saved in that first moment can be missed. One
+// extra refresh shortly after startup picks up anything that slipped through.
+export const STARTUP_RECHECK_MS = 1000;
+
 type AppOptions = {
   projectRoot: string;
   mode: ServerMode;
@@ -80,15 +85,16 @@ export async function startServer(options: StartOptions): Promise<RunningServer>
   const projectState = new ProjectState(options.projectRoot);
   await projectState.refresh();
 
+  const refreshInBackground = () => {
+    // A failed refresh keeps the last state on screen; the next change tries again.
+    projectState.refresh().catch((error: unknown) => {
+      console.error("diffviz: could not refresh the graph:", error);
+    });
+  };
   const watcher = watchProject({
     root: options.projectRoot,
     gitDir: await getGitDir(options.projectRoot),
-    onChange: () => {
-      // A failed refresh keeps the last state on screen; the next change tries again.
-      projectState.refresh().catch((error: unknown) => {
-        console.error("diffviz: could not refresh the graph:", error);
-      });
-    },
+    onChange: refreshInBackground,
   });
 
   const httpServer = http.createServer();
@@ -97,11 +103,13 @@ export async function startServer(options: StartOptions): Promise<RunningServer>
 
   const port = await listenOnOpenPort(httpServer, options.port);
   await watcher.ready;
+  const startupRecheck = setTimeout(refreshInBackground, STARTUP_RECHECK_MS);
   return {
     url: `http://localhost:${port}`,
     port,
     getState: () => projectState.getState(),
     close: async () => {
+      clearTimeout(startupRecheck);
       await watcher.close();
       await created.close();
       await closeHttpServer(httpServer);
