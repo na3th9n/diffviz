@@ -35,6 +35,27 @@ export async function getHeadCommit(root: string): Promise<string | null> {
 // whole working tree into a throwaway copy of the index and diffs that
 // against HEAD. The user's real staging area is never touched.
 export async function getChanges(root: string): Promise<FileChange[]> {
+  return withWorkingTreeIndex(root, async (git) => {
+    // --relative: paths relative to the project root, even if the repo root is higher up.
+    // -z: NUL-separated output, so paths with spaces or quotes come through unchanged.
+    const output = await git.raw([
+      "diff", "--cached", "--find-renames", "--name-status", "-z", "--relative", "HEAD", ...PATHSPEC,
+    ]);
+    return parseNameStatus(output);
+  });
+}
+
+// Returns one hash that identifies the exact content of every file in the
+// project (except the App's folder). It changes if and only if some file's
+// content, name or presence changes, so comparing two fingerprints answers
+// "did the code change in between?" without keeping copies of the files.
+export async function getTreeFingerprint(root: string): Promise<string> {
+  return withWorkingTreeIndex(root, async (git) => (await git.raw(["write-tree"])).trim());
+}
+
+// Stages the whole working tree into a throwaway copy of the index, runs
+// `use` with a git client pointed at it, and deletes it afterwards.
+async function withWorkingTreeIndex<T>(root: string, use: (git: SimpleGit) => Promise<T>): Promise<T> {
   // The temp index lives outside the project so writing it does not trigger the file watcher.
   const tempDir = await mkdtemp(path.join(os.tmpdir(), "diffviz-index-"));
   const tempIndex = path.join(tempDir, "index");
@@ -42,12 +63,7 @@ export async function getChanges(root: string): Promise<FileChange[]> {
     await seedTempIndex(root, tempIndex);
     const git = gitWithIndex(root, tempIndex);
     await git.raw(["add", "--all", ...PATHSPEC]);
-    // --relative: paths relative to the project root, even if the repo root is higher up.
-    // -z: NUL-separated output, so paths with spaces or quotes come through unchanged.
-    const output = await git.raw([
-      "diff", "--cached", "--find-renames", "--name-status", "-z", "--relative", "HEAD", ...PATHSPEC,
-    ]);
-    return parseNameStatus(output);
+    return await use(git);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

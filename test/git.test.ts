@@ -1,7 +1,7 @@
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { checkRepo, getChanges, getHeadCommit, parseNameStatus } from "../src/server/git.ts";
+import { checkRepo, getChanges, getHeadCommit, getTreeFingerprint, parseNameStatus } from "../src/server/git.ts";
 import { createRepo, makeTempDir, sourceFile } from "./helpers/gitRepo.ts";
 
 describe("parseNameStatus", () => {
@@ -136,3 +136,30 @@ describe("getChanges", () => {
 function sortByPath<T extends { path: string }>(items: T[]): T[] {
   return [...items].sort((a, b) => a.path.localeCompare(b.path));
 }
+
+describe("getTreeFingerprint", () => {
+  it("stays the same while nothing changes", async () => {
+    const repo = createRepo({ "a.ts": "a" });
+    expect(await getTreeFingerprint(repo.root)).toBe(await getTreeFingerprint(repo.root));
+  });
+
+  it("changes when a file is edited, added or deleted", async () => {
+    const repo = createRepo({ "a.ts": "a", "b.ts": "b" });
+    const seen = new Set([await getTreeFingerprint(repo.root)]);
+    repo.write("a.ts", "a2");
+    seen.add(await getTreeFingerprint(repo.root));
+    repo.write("new.ts", "n");  // untracked
+    seen.add(await getTreeFingerprint(repo.root));
+    repo.remove("b.ts");
+    seen.add(await getTreeFingerprint(repo.root));
+    expect(seen.size).toBe(4);
+  });
+
+  it("ignores the App's .diffviz folder", async () => {
+    const repo = createRepo({ "a.ts": "a" });
+    const before = await getTreeFingerprint(repo.root);
+    repo.write(".diffviz/current.json", "{}");
+    expect(await getTreeFingerprint(repo.root)).toBe(before);
+  });
+});
+
