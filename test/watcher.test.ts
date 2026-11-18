@@ -61,6 +61,9 @@ describe("watchProject", () => {
     const onChange = vi.fn();
     watcher = watchProject({ root: repo.root, gitDir: path.join(repo.root, ".git"), onChange, debounceMs: 100 });
     await watcher.ready;
+    // macOS starts delivering events a moment after "ready" (the App covers
+    // this with STARTUP_RECHECK_MS); a save made in that gap would be missed.
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
     repo.write("a.ts", "1");
     repo.write("b.ts", "2");
