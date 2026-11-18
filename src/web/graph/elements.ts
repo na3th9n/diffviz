@@ -1,5 +1,5 @@
 import type { Edge, Node } from "@xyflow/react";
-import type { GraphNode, GraphState, NodeStatus } from "../../shared/types.ts";
+import type { FileNote, GraphNode, GraphState, Layer, NodeStatus, Relationship } from "../../shared/types.ts";
 
 // Node size from the spec's Visual design section. elkjs needs it to lay out
 // the graph before React Flow has drawn anything.
@@ -12,8 +12,9 @@ const MAX_LABEL_CHARS = 23;
 const RENAMED_TAG_CHARS = 7;
 
 export type Tooltip = {
-  title: string;  // short accent-coloured label
-  body: string;
+  title: string;     // short accent-coloured label
+  titleIsPath: boolean;  // file paths are shown in the monospace font
+  body: string[];    // one entry per paragraph
 };
 
 export type FileNodeData = {
@@ -24,43 +25,89 @@ export type FileNodeData = {
   tooltip: Tooltip | null; // null: no tooltip on hover
 };
 
+export type LayerNodeData = {
+  name: string;
+  tooltip: Tooltip;
+};
+
 export type ImportEdgeData = {
-  toUnchanged: boolean;    // points at a grayed-out node, so it is drawn dimmer
+  toUnchanged: boolean;     // points at a grayed-out node, so it is drawn dimmer
+  tooltip: Tooltip | null;  // the agent's label for this import, if it gave one
 };
 
 export type FileFlowNode = Node<FileNodeData, "file">;
+export type LayerFlowNode = Node<LayerNodeData, "layer">;
+export type GraphFlowNode = FileFlowNode | LayerFlowNode;
 export type ImportFlowEdge = Edge<ImportEdgeData, "import">;
 
+// Layer boxes share the node list with files, so their ids get a prefix.
+export const LAYER_ID_PREFIX = "layer:";
+export const layerNodeId = (layerId: string) => LAYER_ID_PREFIX + layerId;
+
 // Converts the server's GraphState into React Flow nodes and edges, without
-// positions; layoutGraph() adds those.
-export function toFlowElements(graph: GraphState): { nodes: FileFlowNode[]; edges: ImportFlowEdge[] } {
+// positions; layoutGraph() adds those. The agent's output (already
+// cross-checked by the server) adds layer boxes and tooltips; without it the
+// graph is the same, just unlabelled.
+export function toFlowElements(graph: GraphState): { nodes: GraphFlowNode[]; edges: ImportFlowEdge[] } {
+  const output = graph.agentOutput;
   const labels = nodeLabels(graph.nodes.map((node) => node.id));
   const statusById = new Map(graph.nodes.map((node) => [node.id, node.status]));
+  const noteByPath = new Map((output?.files ?? []).map((note) => [note.path, note]));
+  const relationshipById = new Map((output?.relationships ?? []).map((r) => [`${r.source}->${r.target}`, r]));
+  const layers = output?.layers ?? [];
+  const layerOfPath = new Map(layers.flatMap((layer) => layer.paths.map((p) => [p, layerNodeId(layer.id)] as const)));
 
-  const nodes = graph.nodes.map((node): FileFlowNode => ({
-    id: node.id,
-    type: "file",
-    position: { x: 0, y: 0 },
-    width: NODE_WIDTH,
-    height: NODE_HEIGHT,
-    data: {
-      path: node.id,
-      label: fitLabel(labels.get(node.id) ?? node.id, node.status === "renamed"),
-      status: node.status,
-      isTypeScript: node.isTypeScript,
-      tooltip: tooltipFor(node),
-    },
-  }));
+  // React Flow needs a parent before its children in the list.
+  const layerNodes = layers.map(layerNode);
+  const fileNodes = graph.nodes.map((node): FileFlowNode => {
+    const parentId = layerOfPath.get(node.id);
+    return {
+      id: node.id,
+      type: "file",
+      position: { x: 0, y: 0 },
+      width: NODE_WIDTH,
+      height: NODE_HEIGHT,
+      ...(parentId !== undefined && { parentId }),
+      data: {
+        path: node.id,
+        label: fitLabel(labels.get(node.id) ?? node.id, node.status === "renamed"),
+        status: node.status,
+        isTypeScript: node.isTypeScript,
+        tooltip: tooltipFor(node, noteByPath.get(node.id)),
+      },
+    };
+  });
 
   const edges = graph.edges.map((edge): ImportFlowEdge => ({
     id: edge.id,
     type: "import",
     source: edge.source,
     target: edge.target,
-    data: { toUnchanged: statusById.get(edge.target) === "unchangedImport" },
+    data: {
+      toUnchanged: statusById.get(edge.target) === "unchangedImport",
+      tooltip: relationshipTooltip(relationshipById.get(edge.id)),
+    },
   }));
 
-  return { nodes, edges };
+  return { nodes: [...layerNodes, ...fileNodes], edges };
+}
+
+// A layer box. Its size depends on its files, so layoutGraph() sets it.
+function layerNode(layer: Layer): LayerFlowNode {
+  return {
+    id: layerNodeId(layer.id),
+    type: "layer",
+    position: { x: 0, y: 0 },
+    data: {
+      name: layer.name,
+      tooltip: { title: layer.name, titleIsPath: false, body: paragraphs(layer.description) },
+    },
+  };
+}
+
+function relationshipTooltip(relationship: Relationship | undefined): Tooltip | null {
+  if (!relationship) return null;
+  return { title: relationship.label, titleIsPath: false, body: paragraphs(relationship.description) };
 }
 
 // Picks the shortest ending of each path that no other path shares:
@@ -100,16 +147,30 @@ export function fitLabel(label: string, hasRenamedTag: boolean): string {
   return label.length <= max ? label : "…" + label.slice(-(max - 1));
 }
 
-// Tooltips that come from git, so they are always accurate. Changed files get
-// the agent's description in Part 5; grayed-out imports never have a tooltip.
-export function tooltipFor(node: GraphNode): Tooltip | null {
+// A file's tooltip. Deleted and renamed files always say so, from git, so that
+// part is always accurate; the agent's description follows when there is one.
+// Grayed-out imports never have a tooltip: the agent didn't change them.
+export function tooltipFor(node: GraphNode, note?: FileNote): Tooltip | null {
+  const description = note ? paragraphs(note.description) : [];
+  const tooltip = (body: string[]): Tooltip | null =>
+    body.length === 0 ? null : { title: node.id, titleIsPath: true, body };
+
   switch (node.status) {
     case "deleted":
-      return { title: node.id, body: "This file has been deleted." };
+      return tooltip(["This file has been deleted.", ...description]);
     case "renamed":
-      return { title: node.id, body: `Renamed from ${node.oldPath ?? "an unknown path"}.` };
+      return tooltip([`Renamed from ${node.oldPath ?? "an unknown path"}.`, ...description]);
     case "changed":
+      return tooltip(description);
     case "unchangedImport":
       return null;
   }
+}
+
+// Splits text into paragraphs at blank lines, dropping empty ones.
+export function paragraphs(text: string): string[] {
+  return text
+    .split(/\n\s*\n/)
+    .map((part) => part.trim())
+    .filter((part) => part !== "");
 }
