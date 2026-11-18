@@ -1,4 +1,4 @@
-import { copyFile, mkdtemp, rm } from "node:fs/promises";
+import { copyFile, mkdtemp, rm, stat, utimes } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { simpleGit, type SimpleGit } from "simple-git";
@@ -77,10 +77,24 @@ async function seedTempIndex(root: string, tempIndex: string): Promise<void> {
   const realIndex = path.resolve(root, (await git.raw(["rev-parse", "--git-path", "index"])).trim());
   try {
     await copyFile(realIndex, tempIndex);
+    await keepIndexTimestamp(realIndex, tempIndex);
   } catch (error) {
     if (!isMissingFile(error)) throw error;
     await gitWithIndex(root, tempIndex).raw(["read-tree", "HEAD"]);
   }
+}
+
+// Git only trusts a file's saved size and timestamp if the file is older than
+// the index file itself; a file changed in the same second as the index was
+// written is re-read ("racy git"). A fresh copy gets the current time as its
+// timestamp, which would switch that check off, and git could then miss a
+// same-size edit made in the same second as a commit. Giving the copy the
+// real index's timestamp keeps git's check working. (Date only holds
+// milliseconds, so the copy can end up a little older, never newer: that only
+// makes git re-read more files, never fewer.)
+async function keepIndexTimestamp(realIndex: string, tempIndex: string): Promise<void> {
+  const { atime, mtime } = await stat(realIndex);
+  await utimes(tempIndex, atime, mtime);
 }
 
 function gitWithIndex(root: string, indexFile: string): SimpleGit {

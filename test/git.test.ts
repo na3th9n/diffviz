@@ -163,3 +163,18 @@ describe("getTreeFingerprint", () => {
   });
 });
 
+describe("same-size edits in the same second as a commit (racy git)", () => {
+  // Git skips re-reading a file whose size and timestamp look unchanged, unless
+  // the file is not older than the index. The temp index must keep the real
+  // index's timestamp, or this edit can be missed. Before that fix this failed
+  // in about 1 in 13 tries, so 20 tries catch a regression most of the time.
+  it("still sees the edit", async () => {
+    for (let i = 0; i < 20; i++) {
+      const repo = createRepo({ "a.ts": "export const a = 1;" });
+      const before = await getTreeFingerprint(repo.root);
+      repo.write("a.ts", "export const a = 2;");  // same length, written right after the commit
+      expect(await getChanges(repo.root)).toEqual([{ path: "a.ts", change: "modified" }]);
+      expect(await getTreeFingerprint(repo.root)).not.toBe(before);
+    }
+  }, 30_000);
+});
