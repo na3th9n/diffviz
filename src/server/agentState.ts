@@ -1,10 +1,12 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
+import { readFile, rm, writeFile } from "node:fs/promises";
 import type { AgentOutput, StatusError } from "../shared/types.ts";
 import { AGENT_OUTPUT_FILE, parseAgentOutput } from "./agentOutput.ts";
 import { normalizeAgentOutput } from "./agentPaths.ts";
-import { APP_DIR } from "./appFiles.ts";
-import { saveVersion } from "./versions.ts";
+import { appPath } from "./appFiles.ts";
+import { latestVersionText, saveVersion } from "./versions.ts";
+
+// Records which session part (by base commit) current.json was last saved for.
+const OWNER_FILE = "current-part";
 
 // Remembers what the agent has written to current.json during the current
 // session part, and decides the two AI errors. It never touches the graph:
@@ -33,31 +35,33 @@ export class AgentOutputTracker {
 
   // Reads current.json and takes in a new version if there is one. Called on
   // every refresh. `fingerprint` is only called when a session part starts.
-  async update(baseCommit: string, fingerprint: () => Promise<string>): Promise<void> {
+  // Returns the name of the version file saved, or null if none was.
+  async update(baseCommit: string, fingerprint: () => Promise<string>): Promise<string | null> {
     if (baseCommit !== this.baseCommit) {
       // A new session part (or the first read since launch) starts with no
-      // labels and no errors. `lastText` is kept on purpose: the current.json
-      // left over from the part that was just committed is not applied to the
-      // new one. The agent's next rewrite will be.
+      // labels and no errors. `lastText` is kept on purpose: if the leftover
+      // current.json can't be removed below, it is still not applied to the
+      // new part. The agent's next rewrite will be.
       this.baseCommit = baseCommit;
       this.lastValid = null;
       this.invalid = null;
       this.missing = null;
       this.writtenSinceFinish = false;
       this.fingerprintAtFinish = await fingerprint();
+      await this.removeLeftover(baseCommit);
     }
 
     const read = await this.readCurrent();
     if (read.kind === "unreadable") {
       this.invalid = { code: "aiOutputInvalid", message: `current.json could not be read: ${read.reason}` };
       this.lastText = null;  // so the file is taken in again once it can be read
-      return;
+      return null;
     }
     // A deleted current.json keeps the last labels; there is nothing new to take in.
     const text = read.kind === "missing" ? null : read.text;
-    if (text === this.lastText) return;
+    if (text === this.lastText) return null;
     this.lastText = text;
-    if (text === null) return;
+    if (text === null) return null;
 
     // The agent did write: whatever happens next, the output is not "missing".
     this.writtenSinceFinish = true;
@@ -69,11 +73,11 @@ export class AgentOutputTracker {
         code: "aiOutputInvalid",
         message: `current.json is invalid, so the last valid labels are kept: ${result.message}`,
       };
-      return;
+      return null;
     }
     this.invalid = null;
     this.lastValid = normalizeAgentOutput(result.output, this.root);
-    await this.saveHistory(baseCommit, text);
+    return this.saveHistory(baseCommit, text);
   }
 
   // Called when the agent finishes a response (the hook in Part 6). If the
@@ -105,7 +109,7 @@ export class AgentOutputTracker {
     { kind: "text"; text: string } | { kind: "missing" } | { kind: "unreadable"; reason: string }
   > {
     try {
-      return { kind: "text", text: await readFile(path.join(this.root, APP_DIR, AGENT_OUTPUT_FILE), "utf8") };
+      return { kind: "text", text: await readFile(appPath(this.root, AGENT_OUTPUT_FILE), "utf8") };
     } catch (error) {
       if (error instanceof Error && "code" in error && error.code === "ENOENT") return { kind: "missing" };
       // Anything else (e.g. current.json is a folder) is shown as an error
@@ -116,11 +120,38 @@ export class AgentOutputTracker {
 
   // Failing to save history must not stop the labels from showing, so the
   // error is logged rather than thrown.
-  private async saveHistory(baseCommit: string, text: string): Promise<void> {
+  private async saveHistory(baseCommit: string, text: string): Promise<string | null> {
     try {
-      await saveVersion(this.root, baseCommit, text);
+      const version = await saveVersion(this.root, baseCommit, text);
+      await writeFile(appPath(this.root, OWNER_FILE), baseCommit + "\n");
+      return version;
     } catch (error) {
       console.error("diffviz: could not save this version of current.json:", error);
+      return null;
     }
+  }
+
+  // The agent is told to read current.json first and keep describing the
+  // session part. One left from a part that has since been committed would
+  // make it carry on describing work that is already committed, so it is
+  // removed: its content is already saved as that part's last version. It is
+  // only removed if it matches that version exactly, so a file the agent has
+  // already written for the new part is never lost.
+  private async removeLeftover(baseCommit: string): Promise<void> {
+    const owner = (await readIfExists(appPath(this.root, OWNER_FILE)))?.trim();
+    if (!owner || owner === baseCommit) return;
+    const current = await readIfExists(appPath(this.root, AGENT_OUTPUT_FILE));
+    if (current === null || current !== (await latestVersionText(this.root, owner))) return;
+    await rm(appPath(this.root, AGENT_OUTPUT_FILE), { force: true });
+    await rm(appPath(this.root, OWNER_FILE), { force: true });
+  }
+}
+
+async function readIfExists(file: string): Promise<string | null> {
+  try {
+    return await readFile(file, "utf8");
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") return null;
+    throw error;
   }
 }

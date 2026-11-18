@@ -107,7 +107,7 @@ describe("GET /api/events", () => {
     const events = await openSse(`${server.url}/api/events`);
     cleanups.push(events.close);
 
-    expect((await events.next()).data).toEqual({ repo: "notGitRepo", graph: null });
+    expect((await events.next()).data).toEqual({ repo: "notGitRepo", graph: null, activity: null });
   });
 });
 

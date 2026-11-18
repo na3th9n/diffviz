@@ -74,7 +74,7 @@ export type NodeStatus =
   | "renamed";
 
 // ---- Agent output (docs/SPEC.md, "Agent output") ----
-// Plain types for now; the Zod schema that validates current.json comes in Part 5.
+// Validated by AgentOutputSchema in src/server/agentOutput.ts.
 
 export type AgentOutput = {
   schemaVersion: number;          // starts at 1; bumped whenever this shape changes
@@ -110,5 +110,12 @@ export type Relationship = {
 // no graph can be built at all.
 export type AppState = {
   repo: "ready" | "notGitRepo" | "noCommits";
-  graph: GraphState | null;  // null unless repo is "ready"
+  graph: GraphState | null;            // null unless repo is "ready"
+  activity: SessionActivity | null;    // null unless repo is "ready"
+};
+
+// What the Claude Code hooks have logged in the current session part.
+export type SessionActivity = {
+  promptCount: number;                 // prompts sent so far in this session part
+  aiOutputAfterPrompt: number | null;  // the prompt the last valid current.json followed
 };

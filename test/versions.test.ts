@@ -16,7 +16,7 @@ describe("saveVersion", () => {
     const first = await saveVersion(root, BASE, "one");
     await saveVersion(root, BASE, "two");
 
-    expect(first).toBe(path.join(root, ".diffviz", "parts", BASE, "versions", "0001.json"));
+    expect(first).toBe("0001.json");
     expect(versionsIn(root)).toEqual(["0001.json", "0002.json"]);
     expect(readFileSync(path.join(partDir(root, BASE), "versions", "0002.json"), "utf8")).toBe("two");
   });

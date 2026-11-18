@@ -103,11 +103,11 @@ describe("ProjectState on the basic-app fixture", () => {
 
 describe("ProjectState without a usable repo", () => {
   it("sends no graph for a folder that is not a git repository", async () => {
-    expect(await new ProjectState(makeTempDir("diffviz-plain-")).refresh()).toEqual({ repo: "notGitRepo", graph: null });
+    expect(await new ProjectState(makeTempDir("diffviz-plain-")).refresh()).toEqual({ repo: "notGitRepo", graph: null, activity: null });
   });
 
   it("sends no graph for a repository with no commits", async () => {
-    expect(await new ProjectState(createRepo(null).root).refresh()).toEqual({ repo: "noCommits", graph: null });
+    expect(await new ProjectState(createRepo(null).root).refresh()).toEqual({ repo: "noCommits", graph: null, activity: null });
   });
 });
 

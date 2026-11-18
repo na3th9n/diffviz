@@ -12,11 +12,13 @@ type Tone = "idle" | "active" | "warning" | "error";
 // warnings and named errors on the right.
 export function StatusBar({ state, connection }: StatusBarProps) {
   const errors = state?.graph?.errors ?? [];
+  const activity = activityText(state);
   return (
     <div className="status-bar">
       <div className="status-left">{connection === "lost" ? <Disconnected /> : <State state={state} />}</div>
-      {errors.length > 0 && (
+      {(errors.length > 0 || activity) && (
         <div className="status-right">
+          {activity && <span className="muted">{activity}</span>}
           {errors.map((error) => (
             <span key={error.code} className="status-error" title={error.message}>
               {errorLabel(error)}
@@ -59,6 +61,19 @@ function State({ state }: { state: AppState | null }) {
       );
     }
   }
+}
+
+// "AI output updated after prompt 2", as in the mockup. Prompts are counted by
+// the Claude Code hooks; without them there is nothing to show.
+function activityText(state: AppState | null): string | null {
+  const activity = state?.activity;
+  if (!activity || state?.graph?.isClean) return null;
+  if (activity.aiOutputAfterPrompt !== null) {
+    // 0: written before any prompt was logged, e.g. before the hooks were set up.
+    return activity.aiOutputAfterPrompt > 0 ? `AI output updated after prompt ${activity.aiOutputAfterPrompt}` : "AI output updated";
+  }
+  if (activity.promptCount > 0) return `${activity.promptCount} ${activity.promptCount === 1 ? "prompt" : "prompts"}, no AI output yet`;
+  return null;
 }
 
 function Disconnected() {
