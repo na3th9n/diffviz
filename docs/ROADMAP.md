@@ -13,3 +13,7 @@ Draft. Not final; I'm still deciding what comes after 1.0.0.
 Not planned: other languages, accounts, or a hosted backend. A hosted share link (a reviewer opens the graph for a PR) is only worth building if people ask for it.
 
 To decide later: how the App compares to similar tools.
+
+## Ideas noted during the 1.0.0 build
+
+**Self-correcting agent output (from Part 5 planning).** In 1.0.0 the server only reads `current.json`: when it is invalid or missing, the status bar shows the error and the labels stay as they were until the agent's next response happens to fix it. Claude Code's Stop hook (agent finished) can block the agent from stopping and hand it a message. The hook could pass on the error, for example "current.json failed validation: files[2].path: expected string", so the agent rewrites the file in the same turn without the user prompting it. It would need a retry limit (say one attempt) so a broken agent can't loop. Not built in 1.0.0 because it changes the spec's description of the hook, which only tells the App the turn is over.
