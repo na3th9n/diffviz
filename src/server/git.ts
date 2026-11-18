@@ -3,10 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { simpleGit, type SimpleGit } from "simple-git";
 import type { ChangeKind, FileChange } from "../shared/types.ts";
-
-// The App's own data folder. Never reported as a change, or the App's own
-// writes would make the tree look dirty and show up in the graph.
-export const APP_DIR = ".diffviz";
+import { APP_DIR } from "./appFiles.ts";
 
 // Limits git to the project root and leaves out the App's folder.
 const PATHSPEC = ["--", ".", `:(exclude)${APP_DIR}`];
@@ -62,7 +59,11 @@ async function withWorkingTreeIndex<T>(root: string, use: (git: SimpleGit) => Pr
   try {
     await seedTempIndex(root, tempIndex);
     const git = gitWithIndex(root, tempIndex);
-    await git.raw(["add", "--all", ...PATHSPEC]);
+    await git.raw(["add", "--all", "--", "."]);
+    // The App's folder is taken back out, rather than left out of the `add` with
+    // an exclude pathspec: once setup lists .diffviz/ in .git/info/exclude, git
+    // refuses an add whose pathspec names an ignored path, even to exclude it.
+    await git.raw(["rm", "-r", "--cached", "--quiet", "--ignore-unmatch", "--", APP_DIR]);
     return await use(git);
   } finally {
     await rm(tempDir, { recursive: true, force: true });

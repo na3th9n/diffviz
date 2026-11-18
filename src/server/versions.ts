@@ -1,6 +1,6 @@
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { APP_DIR } from "./git.ts";
+import { APP_DIR } from "./appFiles.ts";
 
 // Each session part's data lives in .diffviz/parts/<base commit hash>/. The
 // folder is named by commit, not by sessionPart, because sessionPart restarts

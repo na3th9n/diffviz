@@ -1,7 +1,7 @@
 import path from "node:path";
 import { watch } from "chokidar";
 import { AGENT_OUTPUT_FILE } from "./agentOutput.ts";
-import { APP_DIR } from "./git.ts";
+import { APP_DIR } from "./appFiles.ts";
 
 export const DEBOUNCE_MS = 200;
 

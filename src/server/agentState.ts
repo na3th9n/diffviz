@@ -3,7 +3,7 @@ import path from "node:path";
 import type { AgentOutput, StatusError } from "../shared/types.ts";
 import { AGENT_OUTPUT_FILE, parseAgentOutput } from "./agentOutput.ts";
 import { normalizeAgentOutput } from "./agentPaths.ts";
-import { APP_DIR } from "./git.ts";
+import { APP_DIR } from "./appFiles.ts";
 import { saveVersion } from "./versions.ts";
 
 // Remembers what the agent has written to current.json during the current

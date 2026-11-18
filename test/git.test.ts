@@ -163,18 +163,39 @@ describe("getTreeFingerprint", () => {
   });
 });
 
+describe("the App's folder", () => {
+  // Setup lists .diffviz/ in .git/info/exclude; git must still work, and the
+  // folder must stay out of the changes and the fingerprint, ignored or not.
+  for (const ignored of [false, true]) {
+    it(`is never part of the changes or the fingerprint (${ignored ? "ignored" : "not ignored"} by git)`, async () => {
+      const repo = createRepo({ "a.ts": "a" });
+      if (ignored) repo.write(".git/info/exclude", "**/.diffviz/\n");
+      repo.write(".diffviz/current.json", "{}");
+      const before = await getTreeFingerprint(repo.root);
+
+      repo.write(".diffviz/parts/abc/log.jsonl", "{}\n");
+      repo.write("b.ts", "b");
+      expect(await getChanges(repo.root)).toEqual([{ path: "b.ts", change: "added" }]);
+      repo.remove("b.ts");
+      expect(await getTreeFingerprint(repo.root)).toBe(before);
+    });
+  }
+});
+
 describe("same-size edits in the same second as a commit (racy git)", () => {
   // Git skips re-reading a file whose size and timestamp look unchanged, unless
   // the file is not older than the index. The temp index must keep the real
-  // index's timestamp, or this edit can be missed. Before that fix this failed
-  // in about 1 in 13 tries, so 20 tries catch a regression most of the time.
+  // index's timestamp, or this edit can be missed. It depends on timing, so a
+  // regression is caught by chance: with the fix turned off, 6 tries caught it
+  // in half of the runs, so 12 should catch it in about 3 runs out of 4.
+  // (More tries made this test slow enough to time out others running beside it.)
   it("still sees the edit", async () => {
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 12; i++) {
       const repo = createRepo({ "a.ts": "export const a = 1;" });
       const before = await getTreeFingerprint(repo.root);
       repo.write("a.ts", "export const a = 2;");  // same length, written right after the commit
       expect(await getChanges(repo.root)).toEqual([{ path: "a.ts", change: "modified" }]);
       expect(await getTreeFingerprint(repo.root)).not.toBe(before);
     }
-  }, 30_000);
+  });
 });
