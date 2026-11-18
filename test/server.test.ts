@@ -1,8 +1,8 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import http from "node:http";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { listenOnOpenPort, startServer, type RunningServer } from "../src/server/server.ts";
 import { createRepo } from "./helpers/gitRepo.ts";
 import { openSse } from "./helpers/sse.ts";
@@ -134,16 +134,43 @@ describe("listenOnOpenPort", () => {
   });
 });
 
-describe("POST /api/agent-finished", () => {
+describe("hook endpoints", () => {
   const { webDir } = makeFixture();
 
-  it("checks the turn before answering, and shows aiOutputMissing when current.json was not updated", async () => {
+  it("answers /api/agent-finished at once, then shows aiOutputMissing when current.json was not updated", async () => {
     const repo = createRepo({ "a.ts": "export const a = 1;" });
     const server = await start({ projectRoot: repo.root, webDir, mode: "production", port: 4390 });
     repo.write("a.ts", "export const a = 2;");
 
     const response = await fetch(`${server.url}/api/agent-finished`, { method: "POST" });
-    expect(response.status).toBe(204);
-    expect(server.getState()).toMatchObject({ graph: { errors: [{ code: "aiOutputMissing" }] } });
+    expect(response.status).toBe(202);
+    await vi.waitFor(() => expect(server.getState()).toMatchObject({ graph: { errors: [{ code: "aiOutputMissing" }] } }), {
+      timeout: 5000,
+    });
+  });
+
+  it("logs a prompt and counts it", async () => {
+    const repo = createRepo({ "a.ts": "export const a = 1;" });
+    const server = await start({ projectRoot: repo.root, webDir, mode: "production", port: 4390 });
+
+    const response = await fetch(`${server.url}/api/prompt`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Add a date helper", sessionId: "s1" }),
+    });
+    expect(response.status).toBe(202);
+    await vi.waitFor(() => expect(server.getState()?.activity).toEqual({ promptCount: 1, aiOutputAfterPrompt: null }), {
+      timeout: 5000,
+    });
+  });
+
+  it("writes its port to .diffviz/server.json for the hooks, and removes it on close", async () => {
+    const repo = createRepo({ "a.ts": "a" });
+    const server = await startServer({ projectRoot: repo.root, webDir, mode: "production", port: 4390 });
+    const infoFile = path.join(repo.root, ".diffviz", "server.json");
+    expect(JSON.parse(readFileSync(infoFile, "utf8"))).toEqual({ port: server.port, pid: process.pid });
+
+    await server.close();
+    expect(existsSync(infoFile)).toBe(false);
   });
 });

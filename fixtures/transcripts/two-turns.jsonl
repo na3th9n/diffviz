@@ -1,0 +1,8 @@
+{"type":"summary","summary":"Date helper","leafUuid":"a1"}
+{"type":"user","message":{"role":"user","content":"Add a date helper"},"uuid":"u1"}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"I added src/utils/date.ts."}]},"uuid":"a2"}
+{"type":"user","message":{"role":"user","content":[{"type":"text","text":"Now show it in the header"}]},"uuid":"u2"}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"thinking","thinking":"..."},{"type":"text","text":"I'll update App.tsx."},{"type":"tool_use","id":"t1","name":"Edit","input":{}}]},"uuid":"a3"}
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t1","content":"ok"}]},"uuid":"u3"}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"The header now shows today's date.\n\nThe graph of these changes is in diffviz."}]},"uuid":"a4"}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"te

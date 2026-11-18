@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
 import type { AppState } from "../shared/types.ts";
+import { removeServerInfo, writeServerInfo } from "./appFiles.ts";
 import { stateStream } from "./events.ts";
 import { getGitDir } from "./git.ts";
 import { getProjectInfo } from "./project.ts";
@@ -46,11 +47,26 @@ export async function createApp(options: AppOptions): Promise<CreatedApp> {
 
   app.get("/api/events", stateStream(options.projectState));
 
-  // The agent finished a response. Called by the Claude Code hook (Part 6);
-  // checks whether current.json was updated for this turn.
-  app.post("/api/agent-finished", async (_req, res) => {
-    await options.projectState.agentFinished();
-    res.status(204).end();
+  // Called by the Claude Code hooks (src/server/hook.ts). They answer at once
+  // with 202 Accepted and do the work afterwards, so the agent never waits on
+  // the App. express.json() only reads JSON bodies: a web page on another site
+  // can't send one to this local server without the browser asking first, and
+  // nothing here allows that.
+  const hookBody = express.json({ limit: "5mb" });  // a long response from the agent can be large
+
+  // The user sent a prompt.
+  app.post("/api/prompt", hookBody, (req, res) => {
+    const { text, sessionId } = readHookBody(req.body);
+    res.status(202).end();
+    runInBackground("log the prompt", options.projectState.promptSubmitted(text ?? "", sessionId));
+  });
+
+  // The agent finished a response: log it and check whether current.json was
+  // updated for this turn.
+  app.post("/api/agent-finished", hookBody, (req, res) => {
+    const { text, sessionId } = readHookBody(req.body);
+    res.status(202).end();
+    runInBackground("check the agent's output", options.projectState.agentFinished(text, sessionId));
   });
 
   if (options.mode === "dev") {
@@ -71,6 +87,22 @@ export async function createApp(options: AppOptions): Promise<CreatedApp> {
   }
   app.use(express.static(webDir));
   return { app, close: async () => {} };
+}
+
+// The hook bodies come from our own hook script, but are still checked: any
+// local program can call this server.
+function readHookBody(body: unknown): { text: string | null; sessionId: string | null } {
+  const fields = typeof body === "object" && body !== null ? (body as Record<string, unknown>) : {};
+  return {
+    text: typeof fields.text === "string" ? fields.text : null,
+    sessionId: typeof fields.sessionId === "string" ? fields.sessionId : null,
+  };
+}
+
+function runInBackground(what: string, work: Promise<unknown>): void {
+  work.catch((error: unknown) => {
+    console.error(`diffviz: could not ${what}:`, error);
+  });
 }
 
 type StartOptions = {
@@ -109,6 +141,11 @@ export async function startServer(options: StartOptions): Promise<RunningServer>
   httpServer.on("request", created.app);
 
   const port = await listenOnOpenPort(httpServer, options.port);
+  // Tells the Claude Code hooks which port to call. Without it the graph still
+  // works; only prompts, responses and "AI output missing" are not recorded.
+  await writeServerInfo(options.projectRoot, { port, pid: process.pid }).catch((error: unknown) => {
+    console.warn("diffviz: could not write .diffviz/server.json, so the Claude Code hooks can't reach the App:", error);
+  });
   await watcher.ready;
   const startupRecheck = setTimeout(refreshInBackground, STARTUP_RECHECK_MS);
   return {
@@ -117,6 +154,7 @@ export async function startServer(options: StartOptions): Promise<RunningServer>
     getState: () => projectState.getState(),
     close: async () => {
       clearTimeout(startupRecheck);
+      await removeServerInfo(options.projectRoot, process.pid);
       await watcher.close();
       await created.close();
       await closeHttpServer(httpServer);
