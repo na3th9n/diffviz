@@ -1,11 +1,14 @@
 import type { ProjectInfo } from "../../shared/types.ts";
+import { paragraphs } from "../graph/elements.ts";
 
 type SidebarProps = {
   project: ProjectInfo | null;
   loadError: string | null;
+  summary: string | null;  // the agent's summary of the session part, if there is one
 };
 
-export function Sidebar({ project, loadError }: SidebarProps) {
+export function Sidebar({ project, loadError, summary }: SidebarProps) {
+  const summaryParagraphs = summary === null ? [] : paragraphs(summary);
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
@@ -16,6 +19,17 @@ export function Sidebar({ project, loadError }: SidebarProps) {
         {project && <span className="project-path">{project.displayPath}</span>}
         {loadError && <span className="load-error">{loadError}</span>}
       </div>
+      {summaryParagraphs.length > 0 && (
+        <section className="sidebar-section">
+          <span className="section-label">Session part summary</span>
+          {/* Plain text on purpose: the agent's text is never rendered as HTML. */}
+          {summaryParagraphs.map((paragraph, i) => (
+            <p key={i} className="summary-paragraph">
+              {paragraph}
+            </p>
+          ))}
+        </section>
+      )}
     </aside>
   );
 }

@@ -13,15 +13,21 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/base.css";
 import type { GraphState } from "../../shared/types.ts";
-import { toFlowElements, type FileFlowNode, type Tooltip as TooltipContent } from "../graph/elements.ts";
+import {
+  toFlowElements,
+  type GraphFlowNode,
+  type ImportFlowEdge,
+  type Tooltip as TooltipContent,
+} from "../graph/elements.ts";
 import { layoutGraph } from "../graph/layout.ts";
 import { FileNode } from "./FileNode.tsx";
 import { ArrowMarkers, ImportEdge } from "./ImportEdge.tsx";
+import { LayerNode } from "./LayerNode.tsx";
 import { Legend } from "./Legend.tsx";
 import { Tooltip } from "./Tooltip.tsx";
 
 // Defined outside the component: React Flow warns if these objects change between renders.
-const nodeTypes: NodeTypes = { file: FileNode };
+const nodeTypes: NodeTypes = { file: FileNode, layer: LayerNode };
 const edgeTypes: EdgeTypes = { import: ImportEdge };
 
 type Hover = { content: TooltipContent; x: number; y: number };
@@ -38,7 +44,7 @@ function GraphCanvas({ graph }: { graph: GraphState }) {
   const { nodes: unplaced, edges } = useMemo(() => toFlowElements(graph), [graph]);
   // useNodesState also applies React Flow's own updates to the nodes, such as their
   // measured sizes, which useNodesInitialized below depends on.
-  const [nodes, setNodes, onNodesChange] = useNodesState<FileFlowNode>([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<GraphFlowNode>([]);
   const [layoutError, setLayoutError] = useState<string | null>(null);
   const [hover, setHover] = useState<Hover | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -76,7 +82,7 @@ function GraphCanvas({ graph }: { graph: GraphState }) {
   return (
     <div className="graph-area graph-canvas" ref={containerRef}>
       <ArrowMarkers />
-      <ReactFlow
+      <ReactFlow<GraphFlowNode, ImportFlowEdge>
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -93,6 +99,9 @@ function GraphCanvas({ graph }: { graph: GraphState }) {
         onNodeMouseEnter={(event, node) => showTooltip(event, node.data.tooltip)}
         onNodeMouseMove={(event, node) => showTooltip(event, node.data.tooltip)}
         onNodeMouseLeave={() => setHover(null)}
+        onEdgeMouseEnter={(event, edge) => showTooltip(event, edge.data?.tooltip ?? null)}
+        onEdgeMouseMove={(event, edge) => showTooltip(event, edge.data?.tooltip ?? null)}
+        onEdgeMouseLeave={() => setHover(null)}
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={2} color="#23262c" />
         <Controls showInteractive={false} position="bottom-left" />
@@ -104,9 +113,10 @@ function GraphCanvas({ graph }: { graph: GraphState }) {
   );
 }
 
-// Zooms to fit the whole graph when files are added or removed, but leaves the
-// user's zoom alone when an update only changes nodes that are already there.
-function useFitWhenNodesChange(nodes: FileFlowNode[]): void {
+// Zooms to fit the whole graph when files or layer boxes are added or removed,
+// but leaves the user's zoom alone when an update only changes nodes that are
+// already there.
+function useFitWhenNodesChange(nodes: GraphFlowNode[]): void {
   const { fitView } = useReactFlow();
   // fitView needs each node's measured size; this turns true once React Flow
   // has drawn and measured the current nodes (and false again while new ones are added).

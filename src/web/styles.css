@@ -191,6 +191,22 @@ body {
   color: var(--text-secondary);
 }
 
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.summary-paragraph {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  /* Single line breaks inside a paragraph are kept. */
+  white-space: pre-line;
+}
+
 .section-label {
   font-size: 11px;
   font-weight: 600;
@@ -331,7 +347,7 @@ body {
 }
 
 /* The canvas is read-only, so React Flow marks edges "inactive" and turns off their
-   mouse events. Hover still needs them: for the highlight now, and tooltips in Part 5. */
+   mouse events. Hover still needs them, for the highlight and the arrow's tooltip. */
 .graph-canvas .react-flow__edge-import.inactive {
   pointer-events: all;
 }
@@ -340,6 +356,40 @@ body {
   stroke: var(--accent);
   stroke-width: 2.5;
   marker-end: url(#diffviz-arrow-hover);
+}
+
+/* ---- Layer boxes (12px radius, 1px border, faint fill, name above) ---- */
+
+.layer-node {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* The top 24px of the node (LAYER_LABEL_HEIGHT in layout.ts) holds the name. */
+.layer-name {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 24px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c3c8cf;
+}
+
+.layer-box {
+  position: absolute;
+  top: 24px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid var(--layer-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 /* ---- Tooltip ---- */
@@ -360,14 +410,18 @@ body {
 }
 
 .tooltip-title {
-  font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 600;
   color: var(--accent);
   overflow-wrap: anywhere;
 }
 
+.tooltip-title-path {
+  font-family: var(--font-mono);
+}
+
 .tooltip-body {
+  margin: 0;
   font-size: 12px;
   line-height: 1.5;
   color: var(--text-secondary);
