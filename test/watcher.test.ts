@@ -13,10 +13,16 @@ describe("shouldIgnore", () => {
     expect(shouldIgnore(at("src", "App.tsx"), root, gitDir)).toBe(false);
   });
 
-  it("skips node_modules at any depth and the App's .diffviz folder", () => {
+  it("skips node_modules at any depth", () => {
     expect(shouldIgnore(at("node_modules", "react", "index.js"), root, gitDir)).toBe(true);
     expect(shouldIgnore(at("packages", "ui", "node_modules"), root, gitDir)).toBe(true);
-    expect(shouldIgnore(at(".diffviz", "current.json"), root, gitDir)).toBe(true);
+  });
+
+  it("inside .diffviz, only watches the agent's current.json", () => {
+    expect(shouldIgnore(at(".diffviz"), root, gitDir)).toBe(false);
+    expect(shouldIgnore(at(".diffviz", "current.json"), root, gitDir)).toBe(false);
+    expect(shouldIgnore(at(".diffviz", "parts", "abc123", "versions", "0001.json"), root, gitDir)).toBe(true);
+    expect(shouldIgnore(at(".diffviz", "parts", "current.json"), root, gitDir)).toBe(true);
   });
 
   it("inside .git, only watches the files that change on a commit", () => {
@@ -80,14 +86,22 @@ describe("watchProject", () => {
     await vi.waitFor(() => expect(onChange).toHaveBeenCalled(), { timeout: 3000 });
   });
 
-  it("ignores writes to the App's .diffviz folder", async () => {
+  it("ignores the App's own writes in .diffviz but reports current.json", async () => {
     const repo = createRepo({ "a.ts": "a" });
+    repo.write(".diffviz/current.json", "{}");  // the folder exists before launch, as it does once in use
     const onChange = vi.fn();
     watcher = watchProject({ root: repo.root, gitDir: path.join(repo.root, ".git"), onChange, debounceMs: 50 });
     await watcher.ready;
+    // On macOS, a write made just before the watcher started can still be
+    // reported just after it. Let those settle before counting.
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    onChange.mockClear();
 
-    repo.write(".diffviz/current.json", "{}");
+    repo.write(".diffviz/parts/abc123/versions/0001.json", "{}");  // a saved version
     await new Promise((resolve) => setTimeout(resolve, 400));
     expect(onChange).not.toHaveBeenCalled();
+
+    repo.write(".diffviz/current.json", '{"summary":"new"}');
+    await vi.waitFor(() => expect(onChange).toHaveBeenCalled(), { timeout: 3000 });
   });
 });

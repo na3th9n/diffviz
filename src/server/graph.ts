@@ -57,7 +57,7 @@ export function buildGraphState(input: GraphInput): GraphState {
     errors: input.errors,
     nodes: [...nodes.values()].sort(byId),
     edges: [...edges.values()].sort(byId),
-    agentOutput: null,  // filled in from current.json in Part 5
+    agentOutput: null,  // added by ProjectState after cross-checking current.json
   };
 }
 

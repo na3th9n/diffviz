@@ -1,5 +1,6 @@
 import path from "node:path";
 import { watch } from "chokidar";
+import { AGENT_OUTPUT_FILE } from "./agentOutput.ts";
 import { APP_DIR } from "./git.ts";
 
 export const DEBOUNCE_MS = 200;
@@ -48,7 +49,9 @@ export function watchProject(options: WatchOptions): ProjectWatcher {
 }
 
 // Decides which paths the watcher skips. Project files are watched, except
-// node_modules (huge, never part of the diff) and the App's own folder. Inside
+// node_modules (huge, never part of the diff) and the App's own folder, where
+// the App's own writes would only cause needless refreshes. The one file
+// watched there is the agent's current.json. Inside
 // .git, only the files that change on a commit are watched: everything else
 // there changes constantly and would cause needless refreshes.
 export function shouldIgnore(filePath: string, root: string, gitDir: string | null): boolean {
@@ -57,10 +60,15 @@ export function shouldIgnore(filePath: string, root: string, gitDir: string | nu
   }
   const parts = segments(root, filePath);
   if (parts.includes("node_modules")) return true;
-  if (parts[0] === APP_DIR) return true;
+  if (parts[0] === APP_DIR) return !isAgentOutput(parts.slice(1));
   // Also covers a .git folder created after launch by `git init`.
   if (parts[0] === ".git") return !isCommitMarker(parts.slice(1));
   return false;
+}
+
+function isAgentOutput(partsInsideAppDir: string[]): boolean {
+  if (partsInsideAppDir.length === 0) return true;  // the folder itself, so the watcher can enter it
+  return partsInsideAppDir.length === 1 && partsInsideAppDir[0] === AGENT_OUTPUT_FILE;
 }
 
 // HEAD says which branch is checked out; refs/ and packed-refs hold each

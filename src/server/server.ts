@@ -46,6 +46,13 @@ export async function createApp(options: AppOptions): Promise<CreatedApp> {
 
   app.get("/api/events", stateStream(options.projectState));
 
+  // The agent finished a response. Called by the Claude Code hook (Part 6);
+  // checks whether current.json was updated for this turn.
+  app.post("/api/agent-finished", async (_req, res) => {
+    await options.projectState.agentFinished();
+    res.status(204).end();
+  });
+
   if (options.mode === "dev") {
     // Imported only in dev, so production installs do not need Vite.
     const { createServer } = await import("vite");

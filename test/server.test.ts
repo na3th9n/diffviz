@@ -133,3 +133,17 @@ describe("listenOnOpenPort", () => {
     await expect(listenOnOpenPort(server, taken, 1)).rejects.toThrow(/No free port/);
   });
 });
+
+describe("POST /api/agent-finished", () => {
+  const { webDir } = makeFixture();
+
+  it("checks the turn before answering, and shows aiOutputMissing when current.json was not updated", async () => {
+    const repo = createRepo({ "a.ts": "export const a = 1;" });
+    const server = await start({ projectRoot: repo.root, webDir, mode: "production", port: 4390 });
+    repo.write("a.ts", "export const a = 2;");
+
+    const response = await fetch(`${server.url}/api/agent-finished`, { method: "POST" });
+    expect(response.status).toBe(204);
+    expect(server.getState()).toMatchObject({ graph: { errors: [{ code: "aiOutputMissing" }] } });
+  });
+});
