@@ -1,4 +1,4 @@
-import type { AppState } from "../../shared/types.ts";
+import type { AppState, StatusError } from "../../shared/types.ts";
 import type { Connection } from "../useAppState.ts";
 
 type StatusBarProps = {
@@ -19,7 +19,7 @@ export function StatusBar({ state, connection }: StatusBarProps) {
         <div className="status-right">
           {errors.map((error) => (
             <span key={error.code} className="status-error" title={error.message}>
-              {errorLabel(error.code)}
+              {errorLabel(error)}
             </span>
           ))}
         </div>
@@ -74,11 +74,21 @@ function Indicator({ tone, label }: { tone: Tone; label: string }) {
   );
 }
 
-function errorLabel(code: string): string {
-  switch (code) {
+// The full message is always on hover (the title attribute).
+function errorLabel(error: StatusError): string {
+  switch (error.code) {
     case "dirtyAtLaunch":
       return "Uncommitted changes at launch: commit to start clean";
-    default:
-      return code;
+    case "aiOutputMissing":
+      return "AI output missing: labels may be out of date";
+    case "aiOutputInvalid":
+      // The reason is the useful part, so it is shown, not just hovered.
+      return `AI output invalid: ${reasonOf(error.message)}`;
   }
+}
+
+// The server's message is "<what happened>: <reason>"; show just the reason.
+function reasonOf(message: string): string {
+  const colon = message.indexOf(": ");
+  return colon === -1 ? message : message.slice(colon + 2);
 }
