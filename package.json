@@ -1,5 +1,5 @@
 {
-  "name": "diffviz",
+  "name": "@na3th9n/diffviz",
   "version": "1.0.0",
   "description": "Graph the changes a coding agent makes to a TypeScript project, live from git, labelled with the agent's own description.",
   "keywords": [
@@ -31,6 +31,9 @@
   ],
   "engines": {
     "node": ">=22.22"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "dev": "node --watch-path=src/server --watch-path=src/shared src/server/cli.ts --dev --no-open",

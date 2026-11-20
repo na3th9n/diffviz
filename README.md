@@ -1,10 +1,10 @@
 # diffviz
 
+**[Live demo: diffviz.vercel.app](https://diffviz.vercel.app/demo/)**. Nothing to install: hover files, arrows
+and layer boxes to read the agent's labels.
+
 **See what your coding agent changed.** diffviz graphs every file a coding agent changes in your TypeScript
 project, live from git, and labels the graph with the agent's own description of the work.
-
-**[Try the live demo](https://diffviz.vercel.app/demo/)**: nothing to install. Hover files, arrows and layer
-boxes to read the agent's labels.
 
 [![diffviz showing a graph of changed files grouped into layers, with the agent's summary in the sidebar](https://raw.githubusercontent.com/na3th9n/diffviz/main/site/diffviz-demo.png)](https://diffviz.vercel.app/demo/)
 
@@ -18,10 +18,11 @@ boxes to read the agent's labels.
 In the root of a TypeScript project that uses git:
 
 ```sh
-npx diffviz
+npx @na3th9n/diffviz
 ```
 
-diffviz opens in your browser. Then:
+diffviz opens in your browser. (To install it instead: `npm install -g @na3th9n/diffviz`, then run `diffviz`.)
+Then:
 
 1. **Commit the `CLAUDE.md` it added.** It holds the instructions that tell Claude Code to describe its work
    (see [What diffviz adds to your project](#what-diffviz-adds-to-your-project)).

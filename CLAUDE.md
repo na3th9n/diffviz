@@ -34,7 +34,7 @@ I want to understand the code you write, not just approve it. After each part, b
 
 ## Rules that must always hold
 
-- **The App is published to npm as `diffviz`** and run with `npx diffviz` from a project's root.
+- **The App is published to npm as `@na3th9n/diffviz`** and run with `npx @na3th9n/diffviz` from a project's root. Its command is still `diffviz`. (npm rejected the unscoped name `diffviz` as too similar to `diff-viz`.)
 - **Everything is TypeScript**, frontend and backend, so the App can visualize itself.
 - **The graph comes from git and ts-morph, never from the agent.** Nodes and edges are built deterministically. The agent's `current.json` only adds labels, layers, descriptions, and the summary.
 - **The graph must still render with no `current.json`, or an invalid one.** Never let AI output break or empty the graph.

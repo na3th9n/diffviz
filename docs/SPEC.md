@@ -14,7 +14,7 @@ The App runs locally in the project folder and builds a graph of the agent's cha
 
 #### Launch
 
-The user runs `npx diffviz` from the root of their project directory. This starts a local Node server with access to the project's files, serves the App's UI, and opens it in the browser. There is no folder picker: the App always works on the folder it was launched from. The user then starts a Claude Code session in the same directory, so the agent and the App share files without any extra permissions.
+The user runs `npx @na3th9n/diffviz` from the root of their project directory. This starts a local Node server with access to the project's files, serves the App's UI, and opens it in the browser. There is no folder picker: the App always works on the folder it was launched from. The user then starts a Claude Code session in the same directory, so the agent and the App share files without any extra permissions.
 
 If the git tree is dirty at launch, the App warns the user to commit first, so uncommitted work doesn't mix into the graph.
 
