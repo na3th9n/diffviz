@@ -1,0 +1,224 @@
+/* The homepage, in the App's dark theme (tokens from docs/SPEC.md). */
+:root {
+  --bg: #14161a;
+  --panel: #1b1e23;
+  --border: #2a2e35;
+  --layer-border: #3a3f48;
+  --text: #e6e8eb;
+  --text-secondary: #d4d8dd;
+  --text-muted: #9aa1ab;
+  --accent: #8fbaff;
+  --changed: #6aa9ff;
+  --font-ui: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  background-image: radial-gradient(#23262c 1px, transparent 1px);
+  background-size: 20px 20px;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+a {
+  color: var(--accent);
+}
+
+code {
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--text-secondary);
+}
+
+.nav,
+main,
+footer {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.brand {
+  color: var(--text);
+  font-weight: 700;
+  font-size: 18px;
+  text-decoration: none;
+}
+
+.nav nav {
+  display: flex;
+  gap: 24px;
+}
+
+.nav nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.nav nav a:hover {
+  color: var(--text);
+}
+
+section {
+  margin: 72px 0;
+}
+
+.hero {
+  margin-top: 56px;
+  max-width: 720px;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: clamp(34px, 6vw, 52px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  margin: 0 0 20px;
+  font-size: 24px;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  margin: 8px 0;
+  font-size: 17px;
+}
+
+.lead {
+  margin: 0 0 28px;
+  font-size: 19px;
+  color: var(--text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.button {
+  display: inline-block;
+  padding: 11px 20px;
+  border: 1.5px solid var(--layer-border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.button:hover {
+  border-color: var(--text-muted);
+}
+
+.button.primary {
+  border-color: var(--changed);
+  background: #1d2736;
+}
+
+.button.primary:hover {
+  background: #24334a;
+}
+
+.hint {
+  margin: 16px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.screenshot {
+  display: block;
+  margin: 56px 0;
+  border: 1px solid var(--layer-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+.screenshot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.card p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid var(--changed);
+  border-radius: 6px;
+  background: #1d2736;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.trust {
+  max-width: 760px;
+}
+
+.trust p {
+  color: var(--text-secondary);
+}
+
+.steps {
+  margin: 0;
+  padding-left: 22px;
+  color: var(--text-secondary);
+}
+
+.steps li {
+  margin-bottom: 10px;
+}
+
+footer {
+  padding-top: 24px;
+  padding-bottom: 48px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 14px;
+}

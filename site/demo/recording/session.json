@@ -1,0 +1,384 @@
+{
+  "project": {
+    "name": "diffviz",
+    "displayPath": "~/projects/diffviz"
+  },
+  "state": {
+    "repo": "ready",
+    "graph": {
+      "sessionPart": 1,
+      "baseCommit": "cdacc73572f9c6c829a6f92fc24fdca46de81496",
+      "isClean": false,
+      "errors": [],
+      "nodes": [
+        {
+          "id": "src/shared/types.ts",
+          "status": "unchangedImport",
+          "isTypeScript": true
+        },
+        {
+          "id": "src/web/App.tsx",
+          "status": "changed",
+          "isTypeScript": true
+        },
+        {
+          "id": "src/web/api.ts",
+          "status": "unchangedImport",
+          "isTypeScript": true
+        },
+        {
+          "id": "src/web/components/FileNode.tsx",
+          "status": "unchangedImport",
+          "isTypeScript": true
+        },
+        {
+          "id": "src/web/components/GraphArea.tsx",
+          "status": "unchangedImport",
+          "isTypeScript": true
+        },
+        {
+          "id": "src/web/components/GraphView.tsx",
+          "status": "changed",
+          "isTypeScript": true
+        },
+        {
+          "id": "src/web/components/ImportEdge.tsx",
+          "status": "unchangedImport",
+          "isTypeScript": true
+        },
+        {
+          "id": "src/web/components/LayerNode.tsx",
+          "status": "changed",
+          "isTypeScript": true
+        },
+        {
+          "id": "src/web/components/Legend.tsx",
+          "status": "unchangedImport",
+          "isTypeScript": true
+        },
+        {
+          "id": "src/web/components/Sidebar.tsx",
+          "status": "changed",
+          "isTypeScript": true
+        },
+        {
+          "id": "src/web/components/StatusBar.tsx",
+          "status": "unchangedImport",
+          "isTypeScript": true
+        },
+        {
+          "id": "src/web/components/Tooltip.tsx",
+          "status": "changed",
+          "isTypeScript": true
+        },
+        {
+          "id": "src/web/graph/elements.ts",
+          "status": "changed",
+          "isTypeScript": true
+        },
+        {
+          "id": "src/web/graph/layout.ts",
+          "status": "changed",
+          "isTypeScript": true
+        },
+        {
+          "id": "src/web/styles.css",
+          "status": "changed",
+          "isTypeScript": false
+        },
+        {
+          "id": "src/web/useAppState.ts",
+          "status": "unchangedImport",
+          "isTypeScript": true
+        },
+        {
+          "id": "test/web/elements.test.ts",
+          "status": "changed",
+          "isTypeScript": true
+        },
+        {
+          "id": "test/web/layout.test.ts",
+          "status": "changed",
+          "isTypeScript": true
+        }
+      ],
+      "edges": [
+        {
+          "id": "src/web/App.tsx->src/shared/types.ts",
+          "source": "src/web/App.tsx",
+          "target": "src/shared/types.ts"
+        },
+        {
+          "id": "src/web/App.tsx->src/web/api.ts",
+          "source": "src/web/App.tsx",
+          "target": "src/web/api.ts"
+        },
+        {
+          "id": "src/web/App.tsx->src/web/components/GraphArea.tsx",
+          "source": "src/web/App.tsx",
+          "target": "src/web/components/GraphArea.tsx"
+        },
+        {
+          "id": "src/web/App.tsx->src/web/components/Sidebar.tsx",
+          "source": "src/web/App.tsx",
+          "target": "src/web/components/Sidebar.tsx"
+        },
+        {
+          "id": "src/web/App.tsx->src/web/components/StatusBar.tsx",
+          "source": "src/web/App.tsx",
+          "target": "src/web/components/StatusBar.tsx"
+        },
+        {
+          "id": "src/web/App.tsx->src/web/useAppState.ts",
+          "source": "src/web/App.tsx",
+          "target": "src/web/useAppState.ts"
+        },
+        {
+          "id": "src/web/components/GraphView.tsx->src/shared/types.ts",
+          "source": "src/web/components/GraphView.tsx",
+          "target": "src/shared/types.ts"
+        },
+        {
+          "id": "src/web/components/GraphView.tsx->src/web/components/FileNode.tsx",
+          "source": "src/web/components/GraphView.tsx",
+          "target": "src/web/components/FileNode.tsx"
+        },
+        {
+          "id": "src/web/components/GraphView.tsx->src/web/components/ImportEdge.tsx",
+          "source": "src/web/components/GraphView.tsx",
+          "target": "src/web/components/ImportEdge.tsx"
+        },
+        {
+          "id": "src/web/components/GraphView.tsx->src/web/components/LayerNode.tsx",
+          "source": "src/web/components/GraphView.tsx",
+          "target": "src/web/components/LayerNode.tsx"
+        },
+        {
+          "id": "src/web/components/GraphView.tsx->src/web/components/Legend.tsx",
+          "source": "src/web/components/GraphView.tsx",
+          "target": "src/web/components/Legend.tsx"
+        },
+        {
+          "id": "src/web/components/GraphView.tsx->src/web/components/Tooltip.tsx",
+          "source": "src/web/components/GraphView.tsx",
+          "target": "src/web/components/Tooltip.tsx"
+        },
+        {
+          "id": "src/web/components/GraphView.tsx->src/web/graph/elements.ts",
+          "source": "src/web/components/GraphView.tsx",
+          "target": "src/web/graph/elements.ts"
+        },
+        {
+          "id": "src/web/components/GraphView.tsx->src/web/graph/layout.ts",
+          "source": "src/web/components/GraphView.tsx",
+          "target": "src/web/graph/layout.ts"
+        },
+        {
+          "id": "src/web/components/LayerNode.tsx->src/web/graph/elements.ts",
+          "source": "src/web/components/LayerNode.tsx",
+          "target": "src/web/graph/elements.ts"
+        },
+        {
+          "id": "src/web/components/Sidebar.tsx->src/shared/types.ts",
+          "source": "src/web/components/Sidebar.tsx",
+          "target": "src/shared/types.ts"
+        },
+        {
+          "id": "src/web/components/Sidebar.tsx->src/web/graph/elements.ts",
+          "source": "src/web/components/Sidebar.tsx",
+          "target": "src/web/graph/elements.ts"
+        },
+        {
+          "id": "src/web/components/Tooltip.tsx->src/web/graph/elements.ts",
+          "source": "src/web/components/Tooltip.tsx",
+          "target": "src/web/graph/elements.ts"
+        },
+        {
+          "id": "src/web/graph/elements.ts->src/shared/types.ts",
+          "source": "src/web/graph/elements.ts",
+          "target": "src/shared/types.ts"
+        },
+        {
+          "id": "src/web/graph/layout.ts->src/web/graph/elements.ts",
+          "source": "src/web/graph/layout.ts",
+          "target": "src/web/graph/elements.ts"
+        },
+        {
+          "id": "test/web/elements.test.ts->src/shared/types.ts",
+          "source": "test/web/elements.test.ts",
+          "target": "src/shared/types.ts"
+        },
+        {
+          "id": "test/web/elements.test.ts->src/web/graph/elements.ts",
+          "source": "test/web/elements.test.ts",
+          "target": "src/web/graph/elements.ts"
+        },
+        {
+          "id": "test/web/layout.test.ts->src/shared/types.ts",
+          "source": "test/web/layout.test.ts",
+          "target": "src/shared/types.ts"
+        },
+        {
+          "id": "test/web/layout.test.ts->src/web/graph/elements.ts",
+          "source": "test/web/layout.test.ts",
+          "target": "src/web/graph/elements.ts"
+        },
+        {
+          "id": "test/web/layout.test.ts->src/web/graph/layout.ts",
+          "source": "test/web/layout.test.ts",
+          "target": "src/web/graph/layout.ts"
+        }
+      ],
+      "agentOutput": {
+        "schemaVersion": 1,
+        "summary": "Drew the agent's labels on the graph. Each layer in current.json is now a box around its files, with the layer name above it, and the session summary appears in the sidebar.\n\nHovering a file shows the agent's description of it; deleted and renamed files keep git's own sentence first. Hovering an import arrow shows the agent's label for it, and hovering a layer box shows what the layer is for.\n\nThe layout nests files inside their layer boxes while keeping arrows between layers flowing left to right. New tests check that every file stays inside its box, that boxes never overlap, and that the same graph always gets the same layout.",
+        "files": [
+          {
+            "path": "src/web/graph/elements.ts",
+            "description": "Turns each layer into a parent node and puts its files inside it. File tooltips now carry the agent's description, and arrows carry the agent's label."
+          },
+          {
+            "path": "src/web/graph/layout.ts",
+            "description": "Lays out layer boxes as elkjs containers with room for the name, so files sit inside their box. Each arrow is placed in the box that holds both of its ends."
+          },
+          {
+            "path": "src/web/components/LayerNode.tsx",
+            "description": "New component that draws a layer: a rounded box with a faint fill and the layer name above it."
+          },
+          {
+            "path": "src/web/components/GraphView.tsx",
+            "description": "Registers the layer node type and shows a tooltip when an arrow is hovered, not only a file."
+          },
+          {
+            "path": "src/web/components/Tooltip.tsx",
+            "description": "Shows the description as separate paragraphs, and uses the monospace font only when the title is a file path."
+          },
+          {
+            "path": "src/web/components/Sidebar.tsx",
+            "description": "Adds the \"Session part summary\" section under the folder name, split into paragraphs at blank lines and shown as plain text."
+          },
+          {
+            "path": "src/web/App.tsx",
+            "description": "Passes the agent's summary to the sidebar, but only while there are changes to summarize."
+          },
+          {
+            "path": "src/web/styles.css",
+            "description": "Styles for layer boxes and their names, the sidebar summary, and paragraph tooltips."
+          },
+          {
+            "path": "test/web/elements.test.ts",
+            "description": "Tests layer parenting, file tooltips with and without a description, and which arrows get a label."
+          },
+          {
+            "path": "test/web/layout.test.ts",
+            "description": "Tests that files stay inside their layer box below its name, boxes never overlap, arrows still run left to right, and the layout is repeatable."
+          }
+        ],
+        "layers": [
+          {
+            "id": "graph-model",
+            "name": "Graph model",
+            "description": "Pure functions that turn the server's GraphState into positioned React Flow nodes and edges.",
+            "paths": [
+              "src/web/graph/elements.ts",
+              "src/web/graph/layout.ts"
+            ]
+          },
+          {
+            "id": "canvas",
+            "name": "Canvas",
+            "description": "The React components that draw the graph and its tooltips.",
+            "paths": [
+              "src/web/components/GraphView.tsx",
+              "src/web/components/LayerNode.tsx",
+              "src/web/components/Tooltip.tsx"
+            ]
+          },
+          {
+            "id": "shell",
+            "name": "App shell",
+            "description": "The page around the graph: the sidebar and the top-level component.",
+            "paths": [
+              "src/web/App.tsx",
+              "src/web/components/Sidebar.tsx",
+              "src/web/styles.css"
+            ]
+          },
+          {
+            "id": "tests",
+            "name": "Tests",
+            "description": "Unit tests for the graph model.",
+            "paths": [
+              "test/web/elements.test.ts",
+              "test/web/layout.test.ts"
+            ]
+          }
+        ],
+        "relationships": [
+          {
+            "source": "src/web/components/GraphView.tsx",
+            "target": "src/web/graph/layout.ts",
+            "label": "lays out with",
+            "description": "Each new graph is passed to layoutGraph; a layout that finishes after a newer one started is thrown away."
+          },
+          {
+            "source": "src/web/components/GraphView.tsx",
+            "target": "src/web/graph/elements.ts",
+            "label": "converts with",
+            "description": "toFlowElements turns the GraphState, including the agent's layers and labels, into nodes and edges."
+          },
+          {
+            "source": "src/web/components/GraphView.tsx",
+            "target": "src/web/components/LayerNode.tsx",
+            "label": "draws layers with",
+            "description": "Registered as the \"layer\" node type, so React Flow draws every layer box with it."
+          },
+          {
+            "source": "src/web/components/GraphView.tsx",
+            "target": "src/web/components/Tooltip.tsx",
+            "label": "shows",
+            "description": "Shows the hovered file, arrow or layer's tooltip next to the cursor."
+          },
+          {
+            "source": "src/web/graph/layout.ts",
+            "target": "src/web/graph/elements.ts",
+            "label": "places",
+            "description": "Takes the nodes toFlowElements made and fills in positions, and sizes for layer boxes."
+          },
+          {
+            "source": "src/web/components/Sidebar.tsx",
+            "target": "src/web/graph/elements.ts",
+            "label": "splits text with",
+            "description": "Uses the same paragraphs() helper as the tooltips to split the summary at blank lines."
+          },
+          {
+            "source": "src/web/App.tsx",
+            "target": "src/web/components/Sidebar.tsx",
+            "label": "passes summary to",
+            "description": "Hands the agent's summary to the sidebar while the tree has changes."
+          },
+          {
+            "source": "test/web/layout.test.ts",
+            "target": "src/web/graph/layout.ts",
+            "label": "tests",
+            "description": "Lays out a small job-tracker-shaped graph with two layers and checks the boxes and positions."
+          },
+          {
+            "source": "test/web/elements.test.ts",
+            "target": "src/web/graph/elements.ts",
+            "label": "tests",
+            "description": "Checks layer parents, tooltips and arrow labels for a graph with agent output."
+          }
+        ]
+      }
+    },
+    "activity": {
+      "promptCount": 3,
+      "aiOutputAfterPrompt": 3
+    }
+  },
+  "recordedFrom": {
+    "base": "cdacc73",
+    "head": "a66bc93"
+  }
+}

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>diffviz</title>
+    <meta
+      name="description"
+      content="diffviz graphs the changes a coding agent makes to a TypeScript project, live from git, and labels the graph with the agent's own description."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <link rel="stylesheet" href="./home.css" />
+  </head>
+  <body>
+    <header class="nav">
+      <a class="brand" href="/">diffviz</a>
+      <nav>
+        <a href="/demo/">Demo</a>
+        <a href="https://github.com/na3th9n/diffviz">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <h1>See what your coding agent changed.</h1>
+        <p class="lead">
+          diffviz graphs every file a coding agent changes in your TypeScript project, live from git, and labels
+          the graph with the agent's own description of the work.
+        </p>
+        <div class="actions">
+          <a class="button primary" href="/demo/">Open the demo</a>
+          <a class="button" href="https://github.com/na3th9n/diffviz">View on GitHub</a>
+        </div>
+        <p class="hint">Nothing to install for the demo. To use it on your own project: <code>npx diffviz</code></p>
+      </section>
+
+      <a class="screenshot" href="/demo/" aria-label="Open the demo">
+        <img src="./diffviz-demo.png" alt="diffviz showing a graph of changed files grouped into layers, with the agent's summary in the sidebar" width="1440" height="900" />
+      </a>
+
+      <section>
+        <h2>How it works</h2>
+        <div class="cards">
+          <article class="card">
+            <span class="step">1</span>
+            <h3>The graph comes from git</h3>
+            <p>
+              Every file changed since the last commit becomes a node. ts-morph reads its imports, and each import
+              becomes an arrow from the importing file to the file it imports. Imported files that didn't change are
+              shown grayed out, one hop away.
+            </p>
+          </article>
+          <article class="card">
+            <span class="step">2</span>
+            <h3>The agent adds the labels</h3>
+            <p>
+              After every response, Claude Code writes a short description of its work: a summary, a note per file,
+              layers that group related files, and a label per import. diffviz validates it and drops anything that
+              doesn't match the real graph.
+            </p>
+          </article>
+          <article class="card">
+            <span class="step">3</span>
+            <h3>A commit closes the chapter</h3>
+            <p>
+              The work between two commits is a session part. When you commit, diffviz saves its final graph, every
+              version of the agent's description and your prompts, then starts again from an empty graph.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="trust">
+        <h2>The AI never draws the graph</h2>
+        <p>
+          Nodes and arrows are built deterministically from git and the TypeScript compiler, so the picture is always
+          accurate. The agent can only describe what is there: a description of a file that doesn't exist, or an
+          arrow that isn't a real import, is discarded. If the agent's output is missing or invalid, the graph still
+          renders and the status bar says what went wrong.
+        </p>
+      </section>
+
+      <section>
+        <h2>Try it on your project</h2>
+        <ol class="steps">
+          <li>In the root of a TypeScript project that uses git, run <code>npx diffviz</code>. It opens in your browser.</li>
+          <li>
+            Commit the <code>CLAUDE.md</code> instructions it adds, then start Claude Code in the same folder.
+          </li>
+          <li>Work as usual. The graph updates as files change, and the labels after each response.</li>
+          <li>Commit when a part of the work is done, and the next part starts fresh.</li>
+        </ol>
+        <p class="hint">Needs Node.js 22.22 or newer and git. Everything runs on your machine.</p>
+      </section>
+    </main>
+
+    <footer>
+      <a href="https://github.com/na3th9n/diffviz">github.com/na3th9n/diffviz</a>
+    </footer>
+  </body>
+</html>

@@ -9,5 +9,5 @@
     // Vite does the bundling; tsc only type-checks the frontend.
     "noEmit": true
   },
-  "include": ["src/web", "src/shared"]
+  "include": ["src/web", "src/shared", "site"]
 }
