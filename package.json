@@ -1,23 +1,45 @@
 {
   "name": "diffviz",
-  "version": "0.0.0",
-  "description": "Visualize the changes a coding agent makes to a TypeScript project, live from git.",
+  "version": "1.0.0",
+  "description": "Graph the changes a coding agent makes to a TypeScript project, live from git, labelled with the agent's own description.",
+  "keywords": [
+    "claude-code",
+    "coding-agent",
+    "git",
+    "diff",
+    "visualization",
+    "typescript",
+    "dependency-graph"
+  ],
+  "homepage": "https://github.com/na3th9n/diffviz#readme",
+  "bugs": {
+    "url": "https://github.com/na3th9n/diffviz/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/na3th9n/diffviz.git"
+  },
   "type": "module",
   "bin": {
     "diffviz": "dist/server/cli.js"
   },
   "files": [
-    "dist"
+    "dist/server",
+    "dist/shared",
+    "dist/web"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=22.22"
   },
   "scripts": {
     "dev": "node --watch-path=src/server --watch-path=src/shared src/server/cli.ts --dev --no-open",
     "build": "vite build && tsc -p tsconfig.server.json",
     "start": "node dist/server/cli.js",
     "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.web.json --noEmit && tsc -p tsconfig.test.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:site": "vite build --config vite.site.config.ts",
+    "record-demo": "node scripts/record-demo.ts cdacc73 a66bc93 site/demo/recording/current.json site/demo/recording/session.json",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
     "chokidar": "^6.0.0",
