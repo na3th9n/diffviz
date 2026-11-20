@@ -3,7 +3,10 @@
 **See what your coding agent changed.** diffviz graphs every file a coding agent changes in your TypeScript
 project, live from git, and labels the graph with the agent's own description of the work.
 
-![diffviz showing a graph of changed files grouped into layers, with the agent's summary in the sidebar](https://raw.githubusercontent.com/na3th9n/diffviz/main/site/diffviz-demo.png)
+**[Try the live demo](https://diffviz.vercel.app/demo/)**: nothing to install. Hover files, arrows and layer
+boxes to read the agent's labels.
+
+[![diffviz showing a graph of changed files grouped into layers, with the agent's summary in the sidebar](https://raw.githubusercontent.com/na3th9n/diffviz/main/site/diffviz-demo.png)](https://diffviz.vercel.app/demo/)
 
 - **The graph comes from git and the TypeScript compiler**, never from the AI, so it is always accurate.
 - **The agent labels it** after every response: a summary, a note per file, layers that group related files,
@@ -186,7 +189,8 @@ npm run build:site    # build into dist/site
 npx vite preview --config vite.site.config.ts   # look at it locally
 ```
 
-It deploys to Vercel with the settings in `vercel.json`.
+It is deployed at [diffviz.vercel.app](https://diffviz.vercel.app), which Vercel rebuilds from `main` on every
+push using the settings in `vercel.json`.
 
 ## License
 
