@@ -11,6 +11,7 @@
     "typescript",
     "dependency-graph"
   ],
+  "license": "MIT",
   "homepage": "https://github.com/na3th9n/diffviz#readme",
   "bugs": {
     "url": "https://github.com/na3th9n/diffviz/issues"

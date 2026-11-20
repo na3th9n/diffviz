@@ -187,3 +187,7 @@ npx vite preview --config vite.site.config.ts   # look at it locally
 ```
 
 It deploys to Vercel with the settings in `vercel.json`.
+
+## License
+
+[MIT](LICENSE)
