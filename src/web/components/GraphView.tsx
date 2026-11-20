@@ -93,6 +93,8 @@ function GraphCanvas({ graph }: { graph: GraphState }) {
         nodesConnectable={false}
         elementsSelectable={false}
         edgesFocusable={false}
+        // Use each element's zIndex from toFlowElements as is, so arrows never cover files.
+        zIndexMode="manual"
         minZoom={0.2}
         maxZoom={2}
         attributionPosition="top-right"
@@ -128,6 +130,7 @@ function useFitWhenNodesChange(nodes: GraphFlowNode[]): void {
     if (key === lastKey.current) return;
     lastKey.current = key;
     // maxZoom 1: a small graph is shown at normal size instead of blown up.
-    void fitView({ padding: 0.15, maxZoom: 1, duration: 200 });
+    // The padding needs a unit: React Flow 13 reads a plain number as pixels.
+    void fitView({ padding: "8%", maxZoom: 1, duration: 200 });
   }, [nodesMeasured, nodes, fitView]);
 }

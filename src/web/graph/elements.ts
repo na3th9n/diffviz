@@ -40,6 +40,13 @@ export type LayerFlowNode = Node<LayerNodeData, "layer">;
 export type GraphFlowNode = FileFlowNode | LayerFlowNode;
 export type ImportFlowEdge = Edge<ImportEdgeData, "import">;
 
+// Stacking order, back to front. React Flow's own rule draws arrows between
+// files inside layer boxes above files outside them; with zIndexMode "manual"
+// (GraphView) these fixed values apply instead.
+export const LAYER_Z = 0;
+export const EDGE_Z = 1;
+export const FILE_Z = 2;
+
 // Layer boxes share the node list with files, so their ids get a prefix.
 export const LAYER_ID_PREFIX = "layer:";
 export const layerNodeId = (layerId: string) => LAYER_ID_PREFIX + layerId;
@@ -67,6 +74,7 @@ export function toFlowElements(graph: GraphState): { nodes: GraphFlowNode[]; edg
       position: { x: 0, y: 0 },
       width: NODE_WIDTH,
       height: NODE_HEIGHT,
+      zIndex: FILE_Z,
       ...(parentId !== undefined && { parentId }),
       data: {
         path: node.id,
@@ -83,6 +91,7 @@ export function toFlowElements(graph: GraphState): { nodes: GraphFlowNode[]; edg
     type: "import",
     source: edge.source,
     target: edge.target,
+    zIndex: EDGE_Z,
     data: {
       toUnchanged: statusById.get(edge.target) === "unchangedImport",
       tooltip: relationshipTooltip(relationshipById.get(edge.id)),
@@ -98,6 +107,7 @@ function layerNode(layer: Layer): LayerFlowNode {
     id: layerNodeId(layer.id),
     type: "layer",
     position: { x: 0, y: 0 },
+    zIndex: LAYER_Z,
     data: {
       name: layer.name,
       tooltip: { title: layer.name, titleIsPath: false, body: paragraphs(layer.description) },

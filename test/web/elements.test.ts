@@ -115,6 +115,7 @@ describe("toFlowElements", () => {
         position: { x: 0, y: 0 },
         width: 188,
         height: 40,
+        zIndex: 2,
         data: { path: "src/App.tsx", label: "App.tsx", status: "changed", isTypeScript: true, tooltip: null },
       },
       {
@@ -123,6 +124,7 @@ describe("toFlowElements", () => {
         position: { x: 0, y: 0 },
         width: 188,
         height: 40,
+        zIndex: 2,
         data: { path: "src/theme.css", label: "theme.css", status: "unchangedImport", isTypeScript: false, tooltip: null },
       },
     ]);
@@ -143,8 +145,8 @@ describe("toFlowElements", () => {
       ),
     );
     expect(edges).toEqual([
-      { id: "a.ts->b.ts", type: "import", source: "a.ts", target: "b.ts", data: { toUnchanged: false, tooltip: null } },
-      { id: "a.ts->lib.ts", type: "import", source: "a.ts", target: "lib.ts", data: { toUnchanged: true, tooltip: null } },
+      { id: "a.ts->b.ts", type: "import", source: "a.ts", target: "b.ts", zIndex: 1, data: { toUnchanged: false, tooltip: null } },
+      { id: "a.ts->lib.ts", type: "import", source: "a.ts", target: "lib.ts", zIndex: 1, data: { toUnchanged: true, tooltip: null } },
     ]);
   });
 
@@ -162,6 +164,14 @@ describe("toFlowElements", () => {
       files: [{ path: "src/App.tsx", description: "Shows the sync banner." }],
       layers: [{ id: "ui", name: "UI", description: "React components.", paths: ["src/App.tsx"] }],
       relationships: [{ source: "src/App.tsx", target: "src/api.ts", label: "fetches from", description: "Loads the status." }],
+    });
+
+    it("stacks layer boxes behind arrows, and arrows behind files", () => {
+      const { nodes: flowNodes, edges: flowEdges } = toFlowElements(graphOf(nodes, edges, output));
+      const z = (id: string) => flowNodes.find((n) => n.id === id)?.zIndex;
+      expect(z("layer:ui")).toBeLessThan(flowEdges[0]!.zIndex!);
+      expect(flowEdges[0]!.zIndex).toBeLessThan(z("src/App.tsx")!);  // inside a layer
+      expect(flowEdges[0]!.zIndex).toBeLessThan(z("src/util.ts")!);  // outside any layer
     });
 
     it("adds a box per layer, before the files, and puts its files inside it", () => {
